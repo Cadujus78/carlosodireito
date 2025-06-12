@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panorama Interativo do Direito Brasileiro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutral Harmony -->
+    <!-- Application Structure Plan: A top-level navigation bar allows users to select a major branch of law (Civil, Penal, etc.). This choice populates a left-hand sidebar with the specific sub-topics of that branch. Clicking a sub-topic displays its detailed content in the main right-hand pane. This hierarchical, two-pane dashboard structure was chosen for its effectiveness in handling dense, structured information. It prevents user overload by using progressive disclosure, allowing users to navigate from broad categories to specific details in an intuitive, non-linear fashion without getting lost. -->
+    <!-- Visualization & Content Choices: The source material is entirely textual. Therefore, "visualizations" are structured HTML blocks (headings, lists, paragraphs) styled with Tailwind for clarity and readability. Key terms are bolded to act as visual anchors. A conceptual diagram of the Judiciary System is built using HTML divs and Tailwind's flexbox to visually represent the hierarchy, adhering to the NO SVG/Mermaid constraint. The core interaction is the dynamic navigation system (top-nav -> side-nav -> content pane), which makes the dense text explorable. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .content-area h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #1f2937;
+        }
+        .content-area h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        .content-area p {
+            line-height: 1.75;
+            margin-bottom: 1rem;
+            color: #4b5563;
+        }
+        .content-area ul {
+            list-style-position: inside;
+            margin-left: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .content-area li {
+            margin-bottom: 0.5rem;
+            color: #4b5563;
+        }
+        .content-area strong {
+            color: #111827;
+            font-weight: 600;
+        }
+        .nav-button-active {
+            background-color: #2563eb;
+            color: white;
+        }
+        .side-nav-link-active {
+            background-color: #e0e7ff;
+            color: #1e3a8a;
+            font-weight: 600;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-width: 80%;
+            border-radius: 8px;
+        }
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-gray-800">
+
+    <div id="app" class="flex flex-col h-screen">
+        <header class="bg-white shadow-md z-10">
+            <nav class="container mx-auto px-4 py-3">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-2xl font-bold text-blue-700">Direito Brasileiro</h1>
+                    <div class="hidden md:flex items-center space-x-2" id="top-nav">
+                        <button data-topic="civil" class="nav-button px-4 py-2 rounded-md font-medium text-sm transition-colors duration-200 hover:bg-blue-50">Direito Civil</button>
+                        <button data-topic="administrativo" class="nav-button px-4 py-2 rounded-md font-medium text-sm transition-colors duration-200 hover:bg-blue-50">Direito Administrativo</button>
+                        <button data-topic="penal" class="nav-button px-4 py-2 rounded-md font-medium text-sm transition-colors duration-200 hover:bg-blue-50">Direito Penal</button>
+                        <button data-topic="judiciario" class="nav-button px-4 py-2 rounded-md font-medium text-sm transition-colors duration-200 hover:bg-blue-50">Sistema Judiciário</button>
+                        <button data-topic="empresarial" class="nav-button px-4 py-2 rounded-md font-medium text-sm transition-colors duration-200 hover:bg-blue-50">Direito Empresarial</button>
+                    </div>
+                     <div class="md:hidden">
+                        <select id="mobile-nav" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="civil">Direito Civil</option>
+                            <option value="administrativo">Direito Administrativo</option>
+                            <option value="penal">Direito Penal</option>
+                            <option value="judiciario">Sistema Judiciário</option>
+                            <option value="empresarial">Direito Empresarial</option>
+                        </select>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <main class="flex-grow container mx-auto px-4 py-6 flex flex-col md:flex-row gap-8 overflow-hidden">
+            <aside class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 bg-white p-4 rounded-lg shadow-sm overflow-y-auto">
+                <h2 id="side-nav-title" class="text-lg font-bold mb-4 border-b pb-2 text-gray-700">Tópicos</h2>
+                <nav id="side-nav" class="space-y-1"></nav>
+            </aside>
+
+            <section id="content-pane" class="flex-grow bg-white p-6 md:p-8 rounded-lg shadow-sm overflow-y-auto">
+                <div class="flex justify-end gap-2 mb-4">
+                    <input type="text" id="term-input" placeholder="Explicar termo..." class="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="explain-term-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors duration-200">Explicar Termo</button>
+                    <button id="summarize-btn" class="bg-green-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-600 transition-colors duration-200">Resumir Conteúdo</button>
+                </div>
+                <h2 id="content-title" class="text-3xl font-bold mb-2 text-blue-800"></h2>
+                <div id="content-body" class="content-area mt-4"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const lawData = {
+            civil: {
+                title: "Direito Civil",
+                introduction: `<p>O Código Civil Brasileiro é a espinha dorsal das relações jurídicas privadas no país. Ele regula desde o nascimento de uma pessoa até a sua morte e a sucessão de seus bens, passando por todos os tipos de contratos, obrigações e direitos. Esta seção oferece um panorama dos seus principais institutos, que moldam o dia a dia de cidadãos e empresas.</p>`,
+                subtopics: {
+                    vicios: {
+                        title: "Vícios e Invalidade do Negócio Jurídico",
+                        content: `<h3>Vícios do Negócio Jurídico e Invalidade</h3><p>A validade de um negócio jurídico depende da vontade livre e consciente das partes. O Código Civil prevê defeitos que podem macular essa vontade, tornando o negócio anulável. O Capítulo V trata especificamente da Invalidade do Negócio Jurídico, que ocorre quando não são observados os requisitos legais.</p><h4>Principais Vícios:</h4><ul><li><strong>Dolo:</strong> Artifício malicioso para induzir alguém a praticar um ato que o prejudica.</li><li><strong>Coação:</strong> Ameaça que vicia a vontade e força a realização de um negócio.</li><li><strong>Estado de Perigo:</strong> Ocorre quando alguém, pressionado pela necessidade de salvar-se, ou a pessoa de sua família, de grave dano conhecido pela outra parte, assume obrigação excessivamente onerosa.</li><li><strong>Lesão:</strong> Prejuízo resultante da desproporção entre as prestações de um contrato no momento de sua celebração.</li><li><strong>Fraude contra Credores:</strong> Ato de devedor insolvente que desfalca seu patrimônio para prejudicar os credores.</li></ul>`
+                    },
+                    atos: {
+                        title: "Atos Jurídicos Lícitos e Ilícitos",
+                        content: `<h3>Atos Jurídicos Lícitos e Ilícitos</h3><p>O Código Civil distingue os atos praticados em conformidade com o ordenamento jurídico (lícitos) daqueles que o violam (ilícitos).</p><ul><li><strong>Atos Jurídicos Lícitos (Título II):</strong> São os atos que geram direitos e obrigações dentro da legalidade, como a celebração de um contrato.</li><li><strong>Atos Ilícitos (Título III):</strong> Conforme o Art. 186, "Aquele que, por ação ou omissão voluntária, negligência ou imprudência, violar direito e causar dano a outrem, ainda que exclusivamente moral, comete ato ilícito". O ato ilícito gera a obrigação de reparar o dano (responsabilidade civil).</li></ul>`
+                    },
+                    prescricao: {
+                        title: "Prescrição e Decadência",
+                        content: `<h3>Prescrição e Decadência</h3><p>O Título IV do Código Civil trata da perda de um direito pelo decurso do tempo. Embora parecidos, são institutos distintos.</p><ul><li><strong>Prescrição:</strong> É a perda da pretensão de exigir um direito em juízo, devido à inércia do titular durante um certo tempo. Atinge o direito de ação, mas o direito em si permanece. O código detalha os prazos e as causas que impedem, suspendem ou interrompem a contagem.</li><li><strong>Decadência:</strong> É a perda do próprio direito potestativo por não ter sido exercido no prazo legal ou convencional. Atinge o direito material em si.</li></ul>`
+                    },
+                    obrigacoes: {
+                        title: "Direito das Obrigações",
+                        content: `<h3>Direito das Obrigações</h3><p>Regula o vínculo jurídico entre credor e devedor. O devedor tem o dever de cumprir uma prestação (dar, fazer ou não fazer algo) em favor do credor.</p><h4>Modalidades das Obrigações</h4><ul><li><strong>Obrigações de Dar (Coisa Certa e Incerta):</strong> Entregar um bem específico ou um bem determinado pelo gênero e quantidade.</li><li><strong>Obrigações de Fazer e Não Fazer:</strong> Realizar uma atividade ou abster-se de praticar um ato.</li><li><strong>Alternativas:</strong> O devedor se libera cumprindo uma entre duas ou mais prestações.</li><li><strong>Divisíveis e Indivisíveis:</strong> A prestação pode ou não ser cumprida em partes.</li><li><strong>Solidárias (Ativa e Passiva):</strong> Havendo múltiplos credores ou devedores, cada um pode exigir ou ser obrigado a pagar a dívida toda.</li></ul><h4>Transmissão, Adimplemento e Inadimplemento</h4><p>O Código detalha como as obrigações são transferidas (<strong>Cessão de Crédito, Assunção de Dívida</strong>), como são cumpridas (<strong>Pagamento, Consignação, Novação, Compensação</strong>) e as consequências de seu descumprimento (<strong>Mora, Perdas e Danos, Juros, Cláusula Penal</strong>).</p>`
+                    },
+                    contratos: {
+                        title: "Contratos em Geral",
+                        content: `<h3>Contratos em Geral</h3><p>O contrato é a principal fonte de obrigações. O Código regula sua formação, validade e extinção.</p><h4>Princípios e Formação</h4><p>Baseia-se em princípios como a autonomia da vontade, a boa-fé objetiva e a função social do contrato. A formação se dá com o encontro de vontades (proposta e aceitação).</p><h4>Institutos Importantes</h4><ul><li><strong>Vícios Redibitórios:</strong> Defeitos ocultos na coisa que a tornam imprópria ao uso ou lhe diminuem o valor.</li><li><strong>Evicção:</strong> Perda da coisa em virtude de decisão judicial que a atribui a outrem.</li><li><strong>Exceção de Contrato Não Cumprido:</strong> Nos contratos bilaterais, um contratante não pode exigir o implemento do outro antes de cumprir sua própria obrigação.</li><li><strong>Resolução por Onerosidade Excessiva:</strong> Permite a resolução do contrato se a prestação de uma das partes se tornar excessivamente onerosa devido a acontecimentos extraordinários e imprevisíveis.</li></ul><h4>Espécies de Contrato</h4><p>O Título VI detalha contratos específicos como <strong>Compra e Venda</strong> (com cláusulas especiais de Retrovenda, Preempção, etc.), <strong>Troca ou Permuta</strong> e <strong>Contrato Estimatório</strong>.</p>`
+                    },
+                    sucessao: {
+                        title: "Direito das Sucessões",
+                        content: `<h3>Direito das Sucessões</h3><p>Regula a transferência do patrimônio de uma pessoa após sua morte a seus herdeiros.</p><h4>Sucessão Legítima e Testamentária</h4><ul><li><strong>Sucessão Legítima:</strong> Ocorre por força de lei, na ausência de testamento. Define a ordem de vocação hereditária (descendentes, ascendentes, cônjuge, colaterais).</li><li><strong>Sucessão Testamentária:</strong> Decorre da vontade do falecido expressa em testamento. O Código detalha as formas de testamento (público, cerrado, particular), os legados e outras disposições.</li></ul><h4>Inventário e Partilha</h4><p>Procedimento judicial ou extrajudicial para apurar os bens, direitos e dívidas do falecido e realizar a partilha entre os herdeiros.</p>`
+                    }
+                }
+            },
+            administrativo: {
+                title: "Direito Administrativo",
+                introduction: `<p>O Direito Administrativo organiza o funcionamento do Estado, regulando a atividade da Administração Pública e sua relação com os cidadãos. Ele se baseia em princípios como legalidade, impessoalidade, moralidade e eficiência, buscando sempre o interesse público. Esta seção aborda conceitos chave sobre a estrutura do Estado e o uso dos bens públicos.</p>`,
+                subtopics: {
+                    jurisdicao: {
+                        title: "Sistema de Jurisdição Única",
+                        content: `<h3>Sistema de Jurisdição Única</h3><p>O Brasil adota o sistema de jurisdição única, também conhecido como sistema inglês. Isso significa que <strong>apenas o Poder Judiciário</strong> tem a competência para proferir decisões com força de coisa julgada material, ou seja, decisões definitivas que não podem mais ser modificadas.</p><p>Qualquer lesão ou ameaça a direito pode ser levada à apreciação do Judiciário, conforme o princípio da inafastabilidade da jurisdição (Art. 5º, XXXV, da Constituição Federal).</p>`
+                    },
+                    entidades: {
+                        title: "Entidades da Administração",
+                        content: `<h3>Sociedade de Economia Mista</h3><p>É uma entidade da Administração Pública Indireta, com personalidade jurídica de <strong>direito privado</strong>. Suas características principais são:</p><ul><li>É criada por autorização de lei específica.</li><li>Sua forma é obrigatoriamente de <strong>Sociedade Anônima (S.A.)</strong>.</li><li>O controle acionário (maioria das ações com direito a voto) pertence a um ente público (União, Estados, DF ou Municípios).</li><li>Exemplos: Banco do Brasil, Petrobras.</li></ul>`
+                    },
+                    licitacao: {
+                        title: "Licitação",
+                        content: `<h3>Licitação</h3><p>É o procedimento administrativo obrigatório para as contratações do Poder Público, visando garantir a isonomia e selecionar a proposta mais vantajosa.</p><h4>Fases Importantes</h4><ul><li><strong>Habilitação:</strong> Verificação da aptidão dos licitantes para contratar com a Administração. Envolve análise de regularidade jurídica, técnica, fiscal, social, trabalhista e econômico-financeira.</li><li><strong>Encerramento:</strong> A licitação pode ser encerrada por anulação (em caso de ilegalidade) ou revogação (por conveniência e oportunidade, ou seja, por razões de interesse público).</li></ul>`
+                    },
+                    servidores: {
+                        title: "Servidores Públicos",
+                        content: `<h3>Sindicalização e Greve de Servidores Públicos</h3><p>A Constituição Federal garante direitos distintos para servidores civis e militares.</p><ul><li><strong>Servidores Civis:</strong> Têm direito à livre associação sindical. O direito de greve é assegurado, mas exercido nos termos e limites definidos em lei específica.</li><li><strong>Servidores Militares:</strong> São vedados de sindicalização e do exercício do direito de greve.</li></ul>`
+                    },
+                    bens: {
+                        title: "Bens Públicos",
+                        content: `<h3>Uso e Espécies de Bens Públicos</h3><h4>Uso Privativo</h4><p>O particular pode usar um bem público de forma exclusiva mediante autorização ou permissão.</p><ul><li><strong>Autorização de Uso:</strong> Ato unilateral, discricionário (a administração pode conceder ou não) e precário (pode ser revogado a qualquer tempo). Geralmente não exige licitação e é voltado para interesse predominantemente particular.</li><li><strong>Permissão de Uso:</strong> Também é um ato unilateral, discricionário e precário, mas geralmente envolve um interesse público secundário.</li></ul><h4>Espécies</h4><ul><li><strong>Terras Devolutas:</strong> São terras públicas sem destinação específica e que não integram o patrimônio de um particular. Em regra, pertencem aos Estados, com exceções que as atribuem à União (ex: áreas indispensáveis à defesa das fronteiras).</li><li><strong>Ilhas:</strong> A titularidade depende da localização. Ilhas marítimas e as em rios que banham mais de um Estado pertencem, em regra, à União.</li></ul>`
+                    }
+                }
+            },
+            penal: {
+                title: "Direito Penal",
+                introduction: `<p>O Direito Penal é o ramo do direito público que define os crimes e as contravenções, estabelecendo as respectivas penas e medidas de segurança. Seu objetivo é proteger os bens jurídicos mais importantes para a sociedade, como a vida, a liberdade e o patrimônio. Esta seção explora desde os conceitos fundamentais até a aplicação da lei e a teoria do crime.</p>`,
+                subtopics: {
+                    conceito: {
+                        title: "Conceito e Evolução",
+                        content: `<h3>Conceito, Classificação e Evolução</h3><p>O Direito Penal pode ser visto sob duas óticas: <strong>objetiva</strong> (o conjunto de normas que definem crimes e sanções) e <strong>subjetiva</strong> (o direito do Estado de punir, o <i>jus puniendi</i>).</p><p>Sua evolução histórica passou por diversas fases, desde a <strong>vingança privada</strong> até as modernas <strong>escolas penais</strong> (Clássica, Positiva, etc.), que debateram a finalidade da pena e a natureza do crime. Atualmente, discute-se modelos de política criminal como o <strong>Garantismo Penal</strong>, que busca limitar o poder de punir do Estado, e o <strong>Direito Penal Mínimo</strong>, que defende sua aplicação apenas para proteger os bens jurídicos mais essenciais.</p>`
+                    },
+                    lei: {
+                        title: "A Lei Penal",
+                        content: `<h3>A Lei Penal no Tempo e no Espaço</h3><h4>Eficácia no Tempo</h4><ul><li><strong>Tempo do Crime:</strong> Adota-se a <strong>Teoria da Atividade</strong>, considerando-se praticado o crime no momento da ação ou omissão, ainda que outro seja o momento do resultado.</li><li><strong>Sucessão de Leis:</strong> Uma nova lei penal só pode retroagir para beneficiar o réu (<strong><i>lex mitior</i></strong>). Se a lei nova for mais grave (<strong><i>lex gravior</i></strong>) ou criar um novo crime (<strong><i>novatio legis incriminadora</i></strong>), ela não se aplica a fatos anteriores. A <strong><i>abolitio criminis</i></strong> ocorre quando uma lei nova deixa de considerar um fato como criminoso.</li></ul><h4>Eficácia no Espaço</h4><ul><li><strong>Princípio da Territorialidade:</strong> Aplica-se a lei brasileira aos crimes cometidos no território nacional.</li><li><strong>Extraterritorialidade:</strong> Em certos casos, a lei brasileira pode ser aplicada a crimes cometidos no estrangeiro, de forma incondicionada (ex: crimes contra a vida do Presidente) ou condicionada (ex: crimes que o Brasil se obrigou a reprimir por tratado).</li></ul>`
+                    },
+                    teoria_crime: {
+                        title: "Teoria Geral do Crime",
+                        content: `<h3>Teoria Geral do Crime</h3><p>O conceito analítico de crime, mais aceito no Brasil, o define como um <strong>FATO TÍPICO, ILÍCITO e CULPÁVEL</strong>.</p><h4>Elementos do Crime</h4><ul><li><strong>Sujeitos:</strong> O <strong>sujeito ativo</strong> é quem pratica o crime. O <strong>sujeito passivo</strong> é o titular do bem jurídico lesado. Pessoas jurídicas podem ser sujeito ativo de crimes ambientais.</li><li><strong>Fato Típico:</strong> É a conduta humana (ação ou omissão) que se encaixa perfeitamente na descrição de um tipo penal. Seus elementos são: conduta, resultado, nexo causal e tipicidade.</li><li><strong>Ilicitude (ou Antijuridicidade):</strong> É a contrariedade do fato típico com o ordenamento jurídico. Existem causas que excluem a ilicitude, como a legítima defesa, o estado de necessidade, o estrito cumprimento de dever legal e o exercício regular de direito.</li><li><strong>Culpabilidade:</strong> É o juízo de reprovação sobre o autor do fato. Seus elementos são: imputabilidade, potencial consciência da ilicitude e exigibilidade de conduta diversa.</li></ul>`
+                    },
+                    iter_criminis: {
+                        title: "Iter Criminis e Classificação dos Crimes",
+                        content: `<h3>Fases do Crime (Iter Criminis)</h3><p>É o caminho percorrido para a realização do crime.</p><ol><li><strong>Cogitação:</strong> Fase interna, não punível.</li><li><strong>Preparação:</strong> Atos para viabilizar o crime. Em regra, não são puníveis, salvo se constituírem crime autônomo.</li><li><strong>Execução:</strong> Início da realização do tipo penal. A partir daqui, a tentativa pode ser punida.</li><li><strong>Consumação:</strong> Ocorre quando todos os elementos do tipo penal são realizados.</li></ol><h4>Classificação Doutrinária</h4><p>Os crimes podem ser classificados de diversas formas:</p><ul><li><strong>Doloso, Culposo e Preterdoloso:</strong> Conforme a intenção do agente.</li><li><strong>Comissivo e Omissivo:</strong> Praticado por uma ação ou por uma inação.</li><li><strong>Instantâneo e Permanente:</strong> A consumação se esgota em um momento ou se prolonga no tempo.</li><li><strong>Material, Formal e de Mera Conduta:</strong> Conforme a exigência de um resultado naturalístico.</li></ul>`
+                    },
+                    pena: {
+                        title: "Aplicação da Pena",
+                        content: `<h3>Aplicação da Pena</h3><p>O juiz fixa a pena seguindo um sistema trifásico:</p><ol><li><strong>Fixação da Pena-Base:</strong> O juiz analisa as circunstâncias judiciais do Art. 59 do Código Penal (culpabilidade, antecedentes, conduta social, etc.) e fixa a pena entre o mínimo e o máximo legal.</li><li><strong>Circunstâncias Atenuantes e Agravantes:</strong> Na segunda fase, o juiz considera as circunstâncias que diminuem (ex: confissão) ou aumentam (ex: reincidência) a pena.</li><li><strong>Causas de Diminuição e Aumento:</strong> Na terceira fase, são aplicadas as causas que podem levar a pena para abaixo do mínimo ou acima do máximo.</li></ol><p>A <strong>reincidência</strong>, que ocorre quando o agente comete novo crime após o trânsito em julgado de sentença condenatória anterior, é uma importante circunstância agravante.</p>`
+                    }
+                }
+            },
+            administrativo: {
+                title: "Direito Administrativo",
+                introduction: `<p>O Direito Administrativo organiza o funcionamento do Estado, regulando a atividade da Administração Pública e sua relação com os cidadãos. Ele se baseia em princípios como legalidade, impessoalidade, moralidade e eficiência, buscando sempre o interesse público. Esta seção aborda conceitos chave sobre a estrutura do Estado e o uso dos bens públicos.</p>`,
+                subtopics: {
+                    jurisdicao: {
+                        title: "Sistema de Jurisdição Única",
+                        content: `<h3>Sistema de Jurisdição Única</h3><p>O Brasil adota o sistema de jurisdição única, também conhecido como sistema inglês. Isso significa que <strong>apenas o Poder Judiciário</strong> tem a competência para proferir decisões com força de coisa julgada material, ou seja, decisões definitivas que não podem mais ser modificadas.</p><p>Qualquer lesão ou ameaça a direito pode ser levada à apreciação do Judiciário, conforme o princípio da inafastabilidade da jurisdição (Art. 5º, XXXV, da Constituição Federal).</p>`
+                    },
+                    entidades: {
+                        title: "Entidades da Administração",
+                        content: `<h3>Sociedade de Economia Mista</h3><p>É uma entidade da Administração Pública Indireta, com personalidade jurídica de <strong>direito privado</strong>. Suas características principais são:</p><ul><li>É criada por autorização de lei específica.</li><li>Sua forma é obrigatoriamente de <strong>Sociedade Anônima (S.A.)</strong>.</li><li>O controle acionário (maioria das ações com direito a voto) pertence a um ente público (União, Estados, DF ou Municípios).</li><li>Exemplos: Banco do Brasil, Petrobras.</li></ul>`
+                    },
+                    licitacao: {
+                        title: "Licitação",
+                        content: `<h3>Licitação</h3><p>É o procedimento administrativo obrigatório para as contratações do Poder Público, visando garantir a isonomia e selecionar a proposta mais vantajosa.</p><h4>Fases Importantes</h4><ul><li><strong>Habilitação:</strong> Verificação da aptidão dos licitantes para contratar com a Administração. Envolve análise de regularidade jurídica, técnica, fiscal, social, trabalhista e econômico-financeira.</li><li><strong>Encerramento:</strong> A licitação pode ser encerrada por anulação (em caso de ilegalidade) ou revogação (por conveniência e oportunidade, ou seja, por razões de interesse público).</li></ul>`
+                    },
+                    servidores: {
+                        title: "Servidores Públicos",
+                        content: `<h3>Sindicalização e Greve de Servidores Públicos</h3><p>A Constituição Federal garante direitos distintos para servidores civis e militares.</p><ul><li><strong>Servidores Civis:</strong> Têm direito à livre associação sindical. O direito de greve é assegurado, mas exercido nos termos e limites definidos em lei específica.</li><li><strong>Servidores Militares:</strong> São vedados de sindicalização e do exercício do direito de greve.</li></ul>`
+                    },
+                    bens: {
+                        title: "Bens Públicos",
+                        content: `<h3>Uso e Espécies de Bens Públicos</h3><h4>Uso Privativo</h4><p>O particular pode usar um bem público de forma exclusiva mediante autorização ou permissão.</p><ul><li><strong>Autorização de Uso:</strong> Ato unilateral, discricionário (a administração pode conceder ou não) e precário (pode ser revogado a qualquer tempo). Geralmente não exige licitação e é voltado para interesse predominantemente particular.</li><li><strong>Permissão de Uso:</strong> Também é um ato unilateral, discricionário e precário, mas geralmente envolve um interesse público secundário.</li></ul><h4>Espécies</h4><ul><li><strong>Terras Devolutas:</strong> São terras públicas sem destinação específica e que não integram o patrimônio de um particular. Em regra, pertencem aos Estados, com exceções que as atribuem à União (ex: áreas indispensáveis à defesa das fronteiras).</li><li><strong>Ilhas:</strong> A titularidade depende da localização. Ilhas marítimas e as em rios que banham mais de um Estado pertencem, em regra, à União.</li></ul>`
+                    }
+                }
+            },
+            penal: {
+                title: "Direito Penal",
+                introduction: `<p>O Direito Penal é o ramo do direito público que define os crimes e as contravenções, estabelecendo as respectivas penas e medidas de segurança. Seu objetivo é proteger os bens jurídicos mais importantes para a sociedade, como a vida, a liberdade e o patrimônio. Esta seção explora desde os conceitos fundamentais até a aplicação da lei e a teoria do crime.</p>`,
+                subtopics: {
+                    conceito: {
+                        title: "Conceito e Evolução",
+                        content: `<h3>Conceito, Classificação e Evolução</h3><p>O Direito Penal pode ser visto sob duas óticas: <strong>objetiva</strong> (o conjunto de normas que definem crimes e sanções) e <strong>subjetiva</strong> (o direito do Estado de punir, o <i>jus puniendi</i>).</p><p>Sua evolução histórica passou por diversas fases, desde a <strong>vingança privada</strong> até as modernas <strong>escolas penais</strong> (Clássica, Positiva, etc.), que debateram a finalidade da pena e a natureza do crime. Atualmente, discute-se modelos de política criminal como o <strong>Garantismo Penal</strong>, que busca limitar o poder de punir do Estado, e o <strong>Direito Penal Mínimo</strong>, que defende sua aplicação apenas para proteger os bens jurídicos mais essenciais.</p>`
+                    },
+                    lei: {
+                        title: "A Lei Penal",
+                        content: `<h3>A Lei Penal no Tempo e no Espaço</h3><h4>Eficácia no Tempo</h4><ul><li><strong>Tempo do Crime:</strong> Adota-se a <strong>Teoria da Atividade</strong>, considerando-se praticado o crime no momento da ação ou omissão, ainda que outro seja o momento do resultado.</li><li><strong>Sucessão de Leis:</strong> Uma nova lei penal só pode retroagir para beneficiar o réu (<strong><i>lex mitior</i></strong>). Se a lei nova for mais grave (<strong><i>lex gravior</i></strong>) ou criar um novo crime (<strong><i>novatio legis incriminadora</i></strong>), ela não se aplica a fatos anteriores. A <strong><i>abolitio criminis</i></strong> ocorre quando uma lei nova deixa de considerar um fato como criminoso.</li></ul><h4>Eficácia no Espaço</h4><ul><li><strong>Princípio da Territorialidade:</strong> Aplica-se a lei brasileira aos crimes cometidos no território nacional.</li><li><strong>Extraterritorialidade:</strong> Em certos casos, a lei brasileira pode ser aplicada a crimes cometidos no estrangeiro, de forma incondicionada (ex: crimes contra a vida do Presidente) ou condicionada (ex: crimes que o Brasil se obrigou a reprimir por tratado).</li></ul>`
+                    },
+                    teoria_crime: {
+                        title: "Teoria Geral do Crime",
+                        content: `<h3>Teoria Geral do Crime</h3><p>O conceito analítico de crime, mais aceito no Brasil, o define como um <strong>FATO TÍPICO, ILÍCITO e CULPÁVEL</strong>.</p><h4>Elementos do Crime</h4><ul><li><strong>Sujeitos:</strong> O <strong>sujeito ativo</strong> é quem pratica o crime. O <strong>sujeito passivo</strong> é o titular do bem jurídico lesado. Pessoas jurídicas podem ser sujeito ativo de crimes ambientais.</li><li><strong>Fato Típico:</strong> É a conduta humana (ação ou omissão) que se encaixa perfeitamente na descrição de um tipo penal. Seus elementos são: conduta, resultado, nexo causal e tipicidade.</li><li><strong>Ilicitude (ou Antijuridicidade):</strong> É a contrariedade do fato típico com o ordenamento jurídico. Existem causas que excluem a ilicitude, como a legítima defesa, o estado de necessidade, o estrito cumprimento de dever legal e o exercício regular de direito.</li><li><strong>Culpabilidade:</strong> É o juízo de reprovação sobre o autor do fato. Seus elementos são: imputabilidade, potencial consciência da ilicitude e exigibilidade de conduta diversa.</li></ul>`
+                    },
+                    iter_criminis: {
+                        title: "Iter Criminis e Classificação dos Crimes",
+                        content: `<h3>Fases do Crime (Iter Criminis)</h3><p>É o caminho percorrido para a realização do crime.</p><ol><li><strong>Cogitação:</strong> Fase interna, não punível.</li><li><strong>Preparação:</strong> Atos para viabilizar o crime. Em regra, não são puníveis, salvo se constituírem crime autônomo.</li><li><strong>Execução:</strong> Início da realização do tipo penal. A partir daqui, a tentativa pode ser punida.</li><li><strong>Consumação:</strong> Ocorre quando todos os elementos do tipo penal são realizados.</li></ol><h4>Classificação Doutrinária</h4><p>Os crimes podem ser classificados de diversas formas:</p><ul><li><strong>Doloso, Culposo e Preterdoloso:</strong> Conforme a intenção do agente.</li><li><strong>Comissivo e Omissivo:</strong> Praticado por uma ação ou por uma inação.</li><li><strong>Instantâneo e Permanente:</strong> A consumação se esgota em um momento ou se prolonga no tempo.</li><li><strong>Material, Formal e de Mera Conduta:</strong> Conforme a exigência de um resultado naturalístico.</li></ul>`
+                    },
+                    pena: {
+                        title: "Aplicação da Pena",
+                        content: `<h3>Aplicação da Pena</h3><p>O juiz fixa a pena seguindo um sistema trifásico:</p><ol><li><strong>Fixação da Pena-Base:</strong> O juiz analisa as circunstâncias judiciais do Art. 59 do Código Penal (culpabilidade, antecedentes, conduta social, etc.) e fixa a pena entre o mínimo e o máximo legal.</li><li><strong>Circunstâncias Atenuantes e Agravantes:</strong> Na segunda fase, o juiz considera as circunstâncias que diminuem (ex: confissão) ou aumentam (ex: reincidência) a pena.</li><li><strong>Causas de Diminuição e Aumento:</strong> Na terceira fase, são aplicadas as causas que podem levar a pena para abaixo do mínimo ou acima do máximo.</li></ol><p>A <strong>reincidência</strong>, que ocorre quando o agente comete novo crime após o trânsito em julgado de sentença condenatória anterior, é uma importante circunstância agravante.</p>`
+                    }
+                }
+            },
+            administrativo: {
+                title: "Direito Administrativo",
+                introduction: `<p>O Direito Administrativo organiza o funcionamento do Estado, regulando a atividade da Administração Pública e sua relação com os cidadãos. Ele se baseia em princípios como legalidade, impessoalidade, moralidade e eficiência, buscando sempre o interesse público. Esta seção aborda conceitos chave sobre a estrutura do Estado e o uso dos bens públicos.</p>`,
+                subtopics: {
+                    jurisdicao: {
+                        title: "Sistema de Jurisdição Única",
+                        content: `<h3>Sistema de Jurisdição Única</h3><p>O Brasil adota o sistema de jurisdição única, também conhecido como sistema inglês. Isso significa que <strong>apenas o Poder Judiciário</strong> tem a competência para proferir decisões com força de coisa julgada material, ou seja, decisões definitivas que não podem mais ser modificadas.</p><p>Qualquer lesão ou ameaça a direito pode ser levada à apreciação do Judiciário, conforme o princípio da inafastabilidade da jurisdição (Art. 5º, XXXV, da Constituição Federal).</p>`
+                    },
+                    entidades: {
+                        title: "Entidades da Administração",
+                        content: `<h3>Sociedade de Economia Mista</h3><p>É uma entidade da Administração Pública Indireta, com personalidade jurídica de <strong>direito privado</strong>. Suas características principais são:</p><ul><li>É criada por autorização de lei específica.</li><li>Sua forma é obrigatoriamente de <strong>Sociedade Anônima (S.A.)</strong>.</li><li>O controle acionário (maioria das ações com direito a voto) pertence a um ente público (União, Estados, DF ou Municípios).</li><li>Exemplos: Banco do Brasil, Petrobras.</li></ul>`
+                    },
+                    licitacao: {
+                        title: "Licitação",
+                        content: `<h3>Licitação</h3><p>É o procedimento administrativo obrigatório para as contratações do Poder Público, visando garantir a isonomia e selecionar a proposta mais vantajosa.</p><h4>Fases Importantes</h4><ul><li><strong>Habilitação:</strong> Verificação da aptidão dos licitantes para contratar com a Administração. Envolve análise de regularidade jurídica, técnica, fiscal, social, trabalhista e econômico-financeira.</li><li><strong>Encerramento:</strong> A licitação pode ser encerrada por anulação (em caso de ilegalidade) ou revogação (por conveniência e oportunidade, ou seja, por razões de interesse público).</li></ul>`
+                    },
+                    servidores: {
+                        title: "Servidores Públicos",
+                        content: `<h3>Sindicalização e Greve de Servidores Públicos</h3><p>A Constituição Federal garante direitos distintos para servidores civis e militares.</p><ul><li><strong>Servidores Civis:</strong> Têm direito à livre associação sindical. O direito de greve é assegurado, mas exercido nos termos e limites definidos em lei específica.</li><li><strong>Servidores Militares:</strong> São vedados de sindicalização e do exercício do direito de greve.</li></ul>`
+                    },
+                    bens: {
+                        title: "Bens Públicos",
+                        content: `<h3>Uso e Espécies de Bens Públicos</h3><h4>Uso Privativo</h4><p>O particular pode usar um bem público de forma exclusiva mediante autorização ou permissão.</p><ul><li><strong>Autorização de Uso:</strong> Ato unilateral, discricionário (a administração pode conceder ou não) e precário (pode ser revogado a qualquer tempo). Geralmente não exige licitação e é voltado para interesse predominantemente particular.</li><li><strong>Permissão de Uso:</strong> Também é um ato unilateral, discricionário e precário, mas geralmente envolve um interesse público secundário.</li></ul><h4>Espécies</h4><ul><li><strong>Terras Devolutas:</strong> São terras públicas sem destinação específica e que não integram o patrimônio de um particular. Em regra, pertencem aos Estados, com exceções que as atribuem à União (ex: áreas indispensáveis à defesa das fronteiras).</li><li><strong>Ilhas:</strong> A titularidade depende da localização. Ilhas marítimas e as em rios que banham mais de um Estado pertencem, em regra, à União.</li></ul>`
+                    }
+                }
+            },
+            penal: {
+                title: "Direito Penal",
+                introduction: `<p>O Direito Penal é o ramo do direito público que define os crimes e as contravenções, estabelecendo as respectivas penas e medidas de segurança. Seu objetivo é proteger os bens jurídicos mais importantes para a sociedade, como a vida, a liberdade e o patrimônio. Esta seção explora desde os conceitos fundamentais até a aplicação da lei e a teoria do crime.</p>`,
+                subtopics: {
+                    conceito: {
+                        title: "Conceito e Evolução",
+                        content: `<h3>Conceito, Classificação e Evolução</h3><p>O Direito Penal pode ser visto sob duas óticas: <strong>objetiva</strong> (o conjunto de normas que definem crimes e sanções) e <strong>subjetiva</strong> (o direito do Estado de punir, o <i>jus puniendi</i>).</p><p>Sua evolução histórica passou por diversas fases, desde a <strong>vingança privada</strong> até as modernas <strong>escolas penais</strong> (Clássica, Positiva, etc.), que debateram a finalidade da pena e a natureza do crime. Atualmente, discute-se modelos de política criminal como o <strong>Garantismo Penal</strong>, que busca limitar o poder de punir do Estado, e o <strong>Direito Penal Mínimo</strong>, que defende sua aplicação apenas para proteger os bens jurídicos mais essenciais.</p>`
+                    },
+                    lei: {
+                        title: "A Lei Penal",
+                        content: `<h3>A Lei Penal no Tempo e no Espaço</h3><h4>Eficácia no Tempo</h4><ul><li><strong>Tempo do Crime:</strong> Adota-se a <strong>Teoria da Atividade</strong>, considerando-se praticado o crime no momento da ação ou omissão, ainda que outro seja o momento do resultado.</li><li><strong>Sucessão de Leis:</strong> Uma nova lei penal só pode retroagir para beneficiar o réu (<strong><i>lex mitior</i></strong>). Se a lei nova for mais grave (<strong><i>lex gravior</i></strong>) ou criar um novo crime (<strong><i>novatio legis incriminadora</i></strong>), ela não se aplica a fatos anteriores. A <strong><i>abolitio criminis</i></strong> ocorre quando uma lei nova deixa de considerar um fato como criminoso.</li></ul><h4>Eficácia no Espaço</h4><ul><li><strong>Princípio da Territorialidade:</strong> Aplica-se a lei brasileira aos crimes cometidos no território nacional.</li><li><strong>Extraterritorialidade:</strong> Em certos casos, a lei brasileira pode ser aplicada a crimes cometidos no estrangeiro, de forma incondicionada (ex: crimes contra a vida do Presidente) ou condicionada (ex: crimes que o Brasil se obrigou a reprimir por tratado).</li></ul>`
+                    },
+                    teoria_crime: {
+                        title: "Teoria Geral do Crime",
+                        content: `<h3>Teoria Geral do Crime</h3><p>O conceito analítico de crime, mais aceito no Brasil, o define como um <strong>FATO TÍPICO, ILÍCITO e CULPÁVEL</strong>.</p><h4>Elementos do Crime</h4><ul><li><strong>Sujeitos:</strong> O <strong>sujeito ativo</strong> é quem pratica o crime. O <strong>sujeito passivo</strong> é o titular do bem jurídico lesado. Pessoas jurídicas podem ser sujeito ativo de crimes ambientais.</li><li><strong>Fato Típico:</strong> É a conduta humana (ação ou omissão) que se encaixa perfeitamente na descrição de um tipo penal. Seus elementos são: conduta, resultado, nexo causal e tipicidade.</li><li><strong>Ilicitude (ou Antijuridicidade):</strong> É a contrariedade do fato típico com o ordenamento jurídico. Existem causas que excluem a ilicitude, como a legítima defesa, o estado de necessidade, o estrito cumprimento de dever legal e o exercício regular de direito.</li><li><strong>Culpabilidade:</strong> É o juízo de reprovação sobre o autor do fato. Seus elementos são: imputabilidade, potencial consciência da ilicitude e exigibilidade de conduta diversa.</li></ul>`
+                    },
+                    iter_criminis: {
+                        title: "Iter Criminis e Classificação dos Crimes",
+                        content: `<h3>Fases do Crime (Iter Criminis)</h3><p>É o caminho percorrido para a realização do crime.</p><ol><li><strong>Cogitação:</strong> Fase interna, não punível.</li><li><strong>Preparação:</strong> Atos para viabilizar o crime. Em regra, não são puníveis, salvo se constituírem crime autônomo.</li><li><strong>Execução:</strong> Início da realização do tipo penal. A partir daqui, a tentativa pode ser punida.</li><li><strong>Consumação:</strong> Ocorre quando todos os elementos do tipo penal são realizados.</li></ol><h4>Classificação Doutrinária</h4><p>Os crimes podem ser classificados de diversas formas:</p><ul><li><strong>Doloso, Culposo e Preterdoloso:</strong> Conforme a intenção do agente.</li><li><strong>Comissivo e Omissivo:</strong> Praticado por uma ação ou por uma inação.</li><li><strong>Instantâneo e Permanente:</strong> A consumação se esgota em um momento ou se prolonga no tempo.</li><li><strong>Material, Formal e de Mera Conduta:</strong> Conforme a exigência de um resultado naturalístico.</li></ul>`
+                    },
+                    pena: {
+                        title: "Aplicação da Pena",
+                        content: `<h3>Aplicação da Pena</h3><p>O juiz fixa a pena seguindo um sistema trifásico:</p><ol><li><strong>Fixação da Pena-Base:</strong> O juiz analisa as circunstâncias judiciais do Art. 59 do Código Penal (culpabilidade, antecedentes, conduta social, etc.) e fixa a pena entre o mínimo e o máximo legal.</li><li><strong>Circunstâncias Atenuantes e Agravantes:</strong> Na segunda fase, o juiz considera as circunstâncias que diminuem (ex: confissão) ou aumentam (ex: reincidência) a pena.</li><li><strong>Causas de Diminuição e Aumento:</b> Na terceira fase, são aplicadas as causas que podem levar a pena para abaixo do mínimo ou acima do máximo.</li></ol><p>A <strong>reincidência</strong>, que ocorre quando o agente comete novo crime após o trânsito em julgado de sentença condenatória anterior, é uma importante circunstância agravante.</p>`
+                    }
+                }
+            },
+            administrativo: {
+                title: "Direito Administrativo",
+                introduction: `<p>O Direito Administrativo organiza o funcionamento do Estado, regulando a atividade da Administração Pública e sua relação com os cidadãos. Ele se baseia em princípios como legalidade, impessoalidade, moralidade e eficiência, buscando sempre o interesse público. Esta seção aborda conceitos chave sobre a estrutura do Estado e o uso dos bens públicos.</p>`,
+                subtopics: {
+                    jurisdicao: {
+                        title: "Sistema de Jurisdição Única",
+                        content: `<h3>Sistema de Jurisdição Única</h3><p>O Brasil adota o sistema de jurisdição única, também conhecido como sistema inglês. Isso significa que <strong>apenas o Poder Judiciário</strong> tem a competência para proferir decisões com força de coisa julgada material, ou seja, decisões definitivas que não podem mais ser modificadas.</p><p>Qualquer lesão ou ameaça a direito pode ser levada à apreciação do Judiciário, conforme o princípio da inafastabilidade da jurisdição (Art. 5º, XXXV, da Constituição Federal).</p>`
+                    },
+                    entidades: {
+                        title: "Entidades da Administração",
+                        content: `<h3>Sociedade de Economia Mista</h3><p>É uma entidade da Administração Pública Indireta, com personalidade jurídica de <strong>direito privado</strong>. Suas características principais são:</p><ul><li>É criada por autorização de lei específica.</li><li>Sua forma é obrigatoriamente de <strong>Sociedade Anônima (S.A.)</strong>.</li><li>O controle acionário (maioria das ações com direito a voto) pertence a um ente público (União, Estados, DF ou Municípios).</li><li>Exemplos: Banco do Brasil, Petrobras.</li></ul>`
+                    },
+                    licitacao: {
+                        title: "Licitação",
+                        content: `<h3>Licitação</h3><p>É o procedimento administrativo obrigatório para as contratações do Poder Público, visando garantir a isonomia e selecionar a proposta mais vantajosa.</p><h4>Fases Importantes</h4><ul><li><strong>Habilitação:</strong> Verificação da aptidão dos licitantes para contratar com a Administração. Envolve análise de regularidade jurídica, técnica, fiscal, social, trabalhista e econômico-financeira.</li><li><strong>Encerramento:</strong> A licitação pode ser encerrada por anulação (em caso de ilegalidade) ou revogação (por conveniência e oportunidade, ou seja, por razões de interesse público).</li></ul>`
+                    },
+                    servidores: {
+                        title: "Servidores Públicos",
+                        content: `<h3>Sindicalização e Greve de Servidores Públicos</h3><p>A Constituição Federal garante direitos distintos para servidores civis e militares.</p><ul><li><strong>Servidores Civis:</strong> Têm direito à livre associação sindical. O direito de greve é assegurado, mas exercido nos termos e limites definidos em lei específica.</li><li><strong>Servidores Militares:</strong> São vedados de sindicalização e do exercício do direito de greve.</li></ul>`
+                    },
+                    bens: {
+                        title: "Bens Públicos",
+                        content: `<h3>Uso e Espécies de Bens Públicos</h3><h4>Uso Privativo</h4><p>O particular pode usar um bem público de forma exclusiva mediante autorização ou permissão.</p><ul><li><strong>Autorização de Uso:</strong> Ato unilateral, discricionário (a administração pode conceder ou não) e precário (pode ser revogado a qualquer tempo). Geralmente não exige licitação e é voltado para interesse predominantemente particular.</li><li><strong>Permissão de Uso:</strong> Também é um ato unilateral, discricionário e precário, mas geralmente envolve um interesse público secundário.</li></ul><h4>Espécies</h4><ul><li><strong>Terras Devolutas:</strong> São terras públicas sem destinação específica e que não integram o patrimônio de um particular. Em regra, pertencem aos Estados, com exceções que as atribuem à União (ex: áreas indispensáveis à defesa das fronteiras).</li><li><strong>Ilhas:</i> A titularidade depende da localização. Ilhas marítimas e as em rios que banham mais de um Estado pertencem, em regra, à União.</li></ul>`
+                    }
+                }
+            },
+            penal: {
+                title: "Direito Penal",
+                introduction: `<p>O Direito Penal é o ramo do direito público que define os crimes e as contravenções, estabelecendo as respectivas penas e medidas de segurança. Seu objetivo é proteger os bens jurídicos mais importantes para a sociedade, como a vida, a liberdade e o patrimônio. Esta seção explora desde os conceitos fundamentais até a aplicação da lei e a teoria do crime.</p>`,
+                subtopics: {
+                    conceito: {
+                        title: "Conceito e Evolução",
+                        content: `<h3>Conceito, Classificação e Evolução</h3><p>O Direito Penal pode ser visto sob duas óticas: <strong>objetiva</strong> (o conjunto de normas que definem crimes e sanções) e <strong>subjetiva</strong> (o direito do Estado de punir, o <i>jus puniendi</i>).</p><p>Sua evolução histórica passou por diversas fases, desde a <strong>vingança privada</strong> até as modernas <strong>escolas penais</strong> (Clássica, Positiva, etc.), que debateram a finalidade da pena e a natureza do crime. Atualmente, discute-se modelos de política criminal como o <strong>Garantismo Penal</strong>, que busca limitar o poder de punir do Estado, e o <strong>Direito Penal Mínimo</strong>, que defende sua aplicação apenas para proteger os bens jurídicos mais essenciais.</p>`
+                    },
+                    lei: {
+                        title: "A Lei Penal",
+                        content: `<h3>A Lei Penal no Tempo e no Espaço</h3><h4>Eficácia no Tempo</h4><ul><li><strong>Tempo do Crime:</strong> Adota-se a <strong>Teoria da Atividade</strong>, considerando-se praticado o crime no momento da ação ou omissão, ainda que outro seja o momento do resultado.</li><li><strong>Sucessão de Leis:</strong> Uma nova lei penal só pode retroagir para beneficiar o réu (<strong><i>lex mitior</i></strong>). Se a lei nova for mais grave (<strong><i>lex gravior</i></strong>) ou criar um novo crime (<strong><i>novatio legis incriminadora</i></strong>), ela não se aplica a fatos anteriores. A <strong><i>abolitio criminis</i></strong> ocorre quando uma lei nova deixa de considerar um fato como criminoso.</li></ul><h4>Eficácia no Espaço</h4><ul><li><strong>Princípio da Territorialidade:</strong> Aplica-se a lei brasileira aos crimes cometidos no território nacional.</li><li><strong>Extraterritorialidade:</strong> Em certos casos, a lei brasileira pode ser aplicada a crimes cometidos no estrangeiro, de forma incondicionada (ex: crimes contra a vida do Presidente) ou condicionada (ex: crimes que o Brasil se obrigou a reprimir por tratado).</li></ul>`
+                    },
+                    teoria_crime: {
+                        title: "Teoria Geral do Crime",
+                        content: `<h3>Teoria Geral do Crime</h3><p>O conceito analítico de crime, mais aceito no Brasil, o define como um <strong>FATO TÍPICO, ILÍCITO e CULPÁVEL</strong>.</p><h4>Elementos do Crime</h4><ul><li><strong>Sujeitos:</strong> O <strong>sujeito ativo</strong> é quem pratica o crime. O <strong>sujeito passivo</strong> é o titular do bem jurídico lesado. Pessoas jurídicas podem ser sujeito ativo de crimes ambientais.</li><li><strong>Fato Típico:</strong> É a conduta humana (ação ou omissão) que se encaixa perfeitamente na descrição de um tipo penal. Seus elementos são: conduta, resultado, nexo causal e tipicidade.</li><li><strong>Ilicitude (ou Antijuridicidade):</strong> É a contrariedade do fato típico com o ordenamento jurídico. Existem causas que excluem a ilicitude, como a legítima defesa, o estado de necessidade, o estrito cumprimento de dever legal e o exercício regular de direito.</li><li><strong>Culpabilidade:</strong> É o juízo de reprovação sobre o autor do fato. Seus elementos são: imputabilidade, potencial consciência da ilicitude e exigibilidade de conduta diversa.</li></ul>`
+                    },
+                    iter_criminis: {
+                        title: "Iter Criminis e Classificação dos Crimes",
+                        content: `<h3>Fases do Crime (Iter Criminis)</h3><p>É o caminho percorrido para a realização do crime.</p><ol><li><strong>Cogitação:</strong> Fase interna, não punível.</li><li><strong>Preparação:</strong> Atos para viabilizar o crime. Em regra, não são puníveis, salvo se constituírem crime autônomo.</li><li><strong>Execução:</strong> Início da realização do tipo penal. A partir daqui, a tentativa pode ser punida.</li><li><strong>Consumação:</strong> Ocorre quando todos os elementos do tipo penal são realizados.</li></ol><h4>Classificação Doutrinária</h4><p>Os crimes podem ser classificados de diversas formas:</p><ul><li><strong>Doloso, Culposo e Preterdoloso:</strong> Conforme a intenção do agente.</li><li><strong>Comissivo e Omissivo:</strong> Praticado por uma ação ou por uma inação.</li><li><strong>Instantâneo e Permanente:</strong> A consumação se esgota em um momento ou se prolonga no tempo.</li><li><strong>Material, Formal e de Mera Conduta:</strong> Conforme a exigência de um resultado naturalístico.</li></ul>`
+                    },
+                    pena: {
+                        title: "Aplicação da Pena",
+                        content: `<h3>Aplicação da Pena</h3><p>O juiz fixa a pena seguindo um sistema trifásico:</p><ol><li><strong>Fixação da Pena-Base:</strong> O juiz analisa as circunstâncias judiciais do Art. 59 do Código Penal (culpabilidade, antecedentes, conduta social, etc.) e fixa a pena entre o mínimo e o máximo legal.</li><li><strong>Circunstâncias Atenuantes e Agravantes:</strong> Na segunda fase, o juiz considera as circunstâncias que diminuem (ex: confissão) ou aumentam (ex: reincidência) a pena.</li><li><strong>Causas de Diminuição e Aumento:</b> Na terceira fase, são aplicadas as causas que podem levar a pena para abaixo do mínimo ou acima do máximo.</li></ol><p>A <strong>reincidência</strong>, que ocorre quando o agente comete novo crime após o trânsito em julgado de sentença condenatória anterior, é uma importante circunstância agravante.</p>`
+                    }
+                }
+            },
+            judiciario: {
+                title: "Sistema Judiciário e Jurisprudência",
+                introduction: `<p>O Poder Judiciário brasileiro é o guardião da Constituição e das leis, responsável por resolver conflitos e garantir direitos. Sua estrutura é complexa, dividida entre as justiças Federal e Estadual. A jurisprudência, por sua vez, é a ferramenta que uniformiza as decisões judiciais, trazendo segurança e previsibilidade para a sociedade.</p>`,
+                subtopics: {
+                    jurisprudencia: {
+                        title: "O Papel da Jurisprudência",
+                        content: `<h3>O Papel da Jurisprudência</h3><p>Jurisprudência é o conjunto de decisões e interpretações que os tribunais dão às leis. Em um país de dimensões continentais como o Brasil, ela é fundamental para <strong>uniformizar o entendimento</strong> dos tribunais.</p><p>Sua função é gerar <strong>segurança jurídica</strong>, garantindo que casos semelhantes recebam soluções semelhantes, independentemente de onde sejam julgados. Além disso, serve como um guia poderoso para advogados em suas petições e estratégias processuais.</p>`
+                    },
+                    estrutura: {
+                        title: "Estrutura do Poder Judiciário",
+                        content: `<h3>Estrutura do Poder Judiciário</h3><p>O Judiciário brasileiro é organizado em esferas Federal e Estadual.</p><h4>Justiça Federal</h4><div class="space-y-4 flex flex-col items-center"><div class="w-full max-w-md bg-blue-100 text-blue-900 font-semibold p-3 rounded-lg text-center shadow">STF (Supremo Tribunal Federal)</div><div class="text-2xl font-bold text-blue-400">↓</div><div class="w-full max-w-md bg-indigo-100 text-indigo-900 font-semibold p-3 rounded-lg text-center shadow">Tribunais Superiores (STJ, TST, TSE)</div><div class="text-2xl font-bold text-indigo-400">↓</div><div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl"><div class="bg-gray-100 p-3 rounded-lg text-center shadow"><h5 class="font-semibold">Tribunais Regionais Federais (TRFs)</h5></div><div class="bg-gray-100 p-3 rounded-lg text-center shadow"><h5 class="font-semibold">Tribunais Regionais do Trabalho (TRTs)</h5></div><div class="bg-gray-100 p-3 rounded-lg text-center shadow"><h5 class="font-semibold">Tribunais Regionais Eleitorais (TREs)</h5></div><div class="bg-gray-100 p-3 rounded-lg text-center shadow"><h5 class="font-semibold">Justiça Militar da União</h5></div></div></div><h4 class="mt-6">Justiça Estadual</h4><p>Possui <strong>competência residual</strong>, ou seja, julga todas as causas que não são de competência das justiças especializadas (Federal, Trabalho, Eleitoral e Militar). É o ramo que mais recebe ações, incluindo a maioria dos crimes comuns, ações de família, execuções fiscais e ações cíveis em geral.</p><p>Sua estrutura básica é composta por <strong>Juízes de Direito</strong> (1ª instância) e <strong>Tribunais de Justiça - TJ</strong> (2ª instância).</p>`
+                    }
+                }
+            },
+            empresarial: {
+                title: "Direito Empresarial",
+                introduction: `<p>O Direito Empresarial rege as atividades das empresas e dos empresários. Ele abrange desde a constituição de uma sociedade até os títulos de crédito que viabilizam suas operações e a proteção de seus ativos intangíveis, como marcas e patentes, que são cruciais para a competitividade no mercado.</p>`,
+                subtopics: {
+                    credito: {
+                        title: "Títulos de Crédito",
+                        content: `<h3>Cédulas de Crédito Bancário (CCB)</h3><p>A Cédula de Crédito Bancário é um título de crédito que representa uma promessa de pagamento em dinheiro, decorrente de uma operação de crédito de qualquer modalidade.</p><ul><li><strong>Natureza:</strong> É um título causal, pois está vinculada à operação que a originou.</li><li><strong>Emissão:</strong> É emitida por pessoa física ou jurídica em favor de uma instituição financeira.</li><li><strong>Garantia:</strong> Pode ser emitida com ou sem garantia (real ou fidejussória).</li><li><strong>Requisitos:</strong> A lei detalha os requisitos essenciais que devem constar no título para sua validade.</li></ul>`
+                    },
+                    propriedade: {
+                        title: "Propriedade Industrial",
+                        content: `<h3>Propriedade Industrial (INPI)</h3><p>A proteção da propriedade industrial no Brasil é administrada pelo <strong>Instituto Nacional da Propriedade Industrial (INPI)</strong>, uma autarquia federal.</p><h4>Patentes</h4><ul><li><strong>O que é:</strong> Um título de propriedade temporária sobre uma invenção ou modelo de utilidade, conferido pelo Estado. Garante ao titular o direito de impedir terceiros de produzir, usar ou vender o objeto da patente sem seu consentimento.</li><li><strong>O que não é patenteável:</strong> A lei proíbe a patente de descobertas, teorias científicas, e tudo o que for contrário à moral, aos bons costumes e à segurança, ordem e saúde públicas.</li></ul><h4>Marcas</h4><ul><li><strong>O que é:</strong> Sinal distintivo visualmente perceptível que identifica produtos e serviços.</li><li><strong>Aquisição do Direito:</strong> A propriedade da marca e seu uso exclusivo em todo o território nacional são adquiridos pelo <strong>registro validamente expedido</strong> no INPI.</li><li><strong>Prioridade:</strong> É assegurado o direito de prioridade ao pedido de registro depositado em país que mantenha acordo com o Brasil.</li></ul>`
+                    }
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const topNav = document.getElementById('top-nav');
+            const mobileNav = document.getElementById('mobile-nav');
+            const sideNav = document.getElementById('side-nav');
+            const contentTitle = document.getElementById('content-title');
+            const contentBody = document.getElementById('content-body');
+            const sideNavTitle = document.getElementById('side-nav-title');
+            const summarizeBtn = document.getElementById('summarize-btn');
+            const explainTermBtn = document.getElementById('explain-term-btn');
+            const termInput = document.getElementById('term-input');
+
+            let currentTopicKey = 'civil';
+            let currentSubtopicKey = null;
+
+            const showMessageBox = (message) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'message-box-overlay';
+                document.body.appendChild(overlay);
+
+                const messageBox = document.createElement('div');
+                messageBox.className = 'message-box';
+                messageBox.innerHTML = `
+                    <p class="text-gray-700">${message}</p>
+                    <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors duration-200" onclick="this.parentNode.parentNode.remove(); document.body.removeChild(document.querySelector('.message-box-overlay'));">Fechar</button>
+                `;
+                document.body.appendChild(messageBox);
+            };
+
+            const showLoadingMessage = (message) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'message-box-overlay';
+                overlay.id = 'loading-overlay';
+                document.body.appendChild(overlay);
+
+                const messageBox = document.createElement('div');
+                messageBox.className = 'message-box flex flex-col items-center justify-center';
+                messageBox.id = 'loading-box';
+                messageBox.innerHTML = `
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-2"></div>
+                    <p class="text-gray-700">${message}</p>
+                `;
+                document.body.appendChild(messageBox);
+            };
+
+            const hideLoadingMessage = () => {
+                const loadingOverlay = document.getElementById('loading-overlay');
+                const loadingBox = document.getElementById('loading-box');
+                if (loadingOverlay) loadingOverlay.remove();
+                if (loadingBox) loadingBox.remove();
+            };
+
+            const callGeminiAPI = async (prompt) => {
+                showLoadingMessage("A processar, por favor aguarde...");
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                // IMPORTANTE: Para publicar externamente (ex: Vercel), você precisa de uma chave de API real.
+                // Obtenha uma em Google AI Studio (aistudio.google.com/app/apikey) e substitua a string vazia abaixo.
+                // Se estiver no ambiente Canvas, a chave é fornecida automaticamente.
+                const apiKey = ""; // <--- AIzaSyB8L8rd1L1ppy0gh4y8F_PWX2m0B6pjVkA
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    hideLoadingMessage();
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        showMessageBox(text);
+                    } else {
+                        // Trata erros específicos da API se houver (ex: API key inválida)
+                        if (result.error && result.error.message.includes("API key not valid")) {
+                            showMessageBox("Erro na API: A sua chave de API não é válida. Por favor, verifique-a e tente novamente.");
+                        } else {
+                            showMessageBox("Não foi possível gerar uma resposta. Tente novamente mais tarde.");
+                        }
+                    }
+                } catch (error) {
+                    hideLoadingMessage();
+                    console.error("Erro ao chamar a API Gemini:", error);
+                    showMessageBox("Ocorreu um erro ao comunicar com a API. Por favor, verifique a sua ligação ou tente novamente.");
+                }
+            };
+
+            summarizeBtn.addEventListener('click', () => {
+                const currentContent = contentBody.innerText;
+                if (currentContent.trim()) {
+                    const prompt = `Resuma o seguinte texto sobre direito brasileiro: "${currentContent}"`;
+                    callGeminiAPI(prompt);
+                } else {
+                    showMessageBox("Não há conteúdo para resumir.");
+                }
+            });
+
+            explainTermBtn.addEventListener('click', () => {
+                const term = termInput.value.trim();
+                if (term) {
+                    const currentTopic = lawData[currentTopicKey] ? lawData[currentTopicKey].title : "Direito Brasileiro";
+                    const prompt = `No contexto do ${currentTopic}, explique o termo "${term}" de forma clara e concisa em português (Portugal).`;
+                    callGeminiAPI(prompt);
+                } else {
+                    showMessageBox("Por favor, digite um termo para explicar.");
+                }
+            });
+
+            const renderSideNav = (topicKey) => {
+                const topic = lawData[topicKey];
+                sideNav.innerHTML = '';
+                sideNavTitle.textContent = topic.title;
+                Object.keys(topic.subtopics).forEach((subKey, index) => {
+                    const subtopic = topic.subtopics[subKey];
+                    const link = document.createElement('a');
+                    link.href = '#';
+                    link.dataset.topic = topicKey;
+                    link.dataset.subtopic = subKey;
+                    link.textContent = subtopic.title;
+                    link.className = 'side-nav-link block px-4 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-100 transition-colors duration-200';
+                    sideNav.appendChild(link);
+                });
+            };
+
+            const renderContent = (topicKey, subtopicKey = null) => {
+                currentTopicKey = topicKey;
+                currentSubtopicKey = subtopicKey;
+
+                const topic = lawData[topicKey];
+                if (subtopicKey) {
+                    const subtopic = topic.subtopics[subtopicKey];
+                    contentTitle.textContent = subtopic.title;
+                    contentBody.innerHTML = subtopic.content;
+                } else {
+                    contentTitle.textContent = topic.title;
+                    contentBody.innerHTML = topic.introduction;
+                }
+                document.getElementById('content-pane').scrollTop = 0;
+            };
+
+            const setActiveState = (topicKey, subtopicKey = null) => {
+                document.querySelectorAll('.nav-button').forEach(btn => {
+                    btn.classList.toggle('nav-button-active', btn.dataset.topic === topicKey);
+                });
+
+                document.querySelectorAll('.side-nav-link').forEach(link => {
+                    link.classList.toggle('side-nav-link-active', link.dataset.subtopic === subtopicKey);
+                });
+            };
+            
+            const updateState = (topicKey, subtopicKey = null) => {
+                renderSideNav(topicKey);
+                renderContent(topicKey, subtopicKey);
+                setActiveState(topicKey, subtopicKey);
+                 if (subtopicKey === null && Object.keys(lawData[topicKey].subtopics).length > 0) {
+                    const firstSubtopicKey = Object.keys(lawData[topicKey].subtopics)[0];
+                    renderContent(topicKey, firstSubtopicKey);
+                    setActiveState(topicKey, firstSubtopicKey);
+                }
+            };
+
+            topNav.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    const topicKey = e.target.dataset.topic;
+                    mobileNav.value = topicKey;
+                    updateState(topicKey);
+                }
+            });
+            
+            mobileNav.addEventListener('change', (e) => {
+                const topicKey = e.target.value;
+                updateState(topicKey);
+            });
+
+            sideNav.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (e.target.tagName === 'A') {
+                    const { topic, subtopic } = e.target.dataset;
+                    renderContent(topic, subtopic);
+                    setActiveState(topic, subtopic);
+                }
+            });
+
+            updateState('civil');
+        });
+    </script>
+</body>
+</html>
