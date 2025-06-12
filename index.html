@@ -1,233 +1,616 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panorama Interativo do Direito Brasileiro</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panorama Interativo do Direito Brasileiro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutral Harmony -->
+    <!-- Application Structure Plan: The main legal areas (Civil, Penal, etc.) are now in the left sidebar, serving as the primary navigation. Clicking a main area updates the content pane with its introduction and dynamically populates a sub-navigation section within the same left sidebar with its specific sub-topics. This consolidates all navigation into a single, hierarchical sidebar, improving discoverability and maintaining a clean header. The mobile navigation uses a select element in the header for primary topics, synchronizing with the desktop sidebar. -->
+    <!-- Visualization & Content Choices: The source material is entirely textual. Therefore, "visualizations" are structured HTML blocks (headings, lists, paragraphs) styled with Tailwind for clarity and readability. Key terms are bolded to act as visual anchors. A conceptual diagram of the Judiciary System is built using HTML divs and Tailwind's flexbox to visually represent the hierarchy, adhering to the NO SVG/Mermaid constraint. The core interaction is the dynamic navigation system (main-sidebar-nav -> sub-sidebar-nav -> content pane), which makes the dense text explorable, augmented by Gemini API-powered summarization and term explanation. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .content-area h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #1f2937;
+        }
+        .content-area h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        .content-area p {
+            line-height: 1.75;
+            margin-bottom: 1rem;
+            color: #4b5563;
+        }
+        .content-area ul {
+            list-style-position: inside;
+            margin-left: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .content-area li {
+            margin-bottom: 0.5rem;
+            color: #4b5563;
+        }
+        .content-area strong {
+            color: #111827;
+            font-weight: 600;
+        }
+        .nav-button-active {
+            background-color: #2563eb;
+            color: white;
+        }
+        .main-nav-button.nav-button-active {
+            background-color: #2563eb;
+            color: white;
+            font-weight: 600;
+        }
+        .side-nav-link-active {
+            background-color: #e0e7ff;
+            color: #1e3a8a;
+            font-weight: 600;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-width: 80%;
+            border-radius: 8px;
+        }
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+    </style>
 </head>
 <body class="bg-stone-50 text-gray-800">
-  <div class="flex flex-col min-h-screen">
-    <header class="bg-white shadow-md">
-      <nav class="container mx-auto px-4 py-3 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-blue-700">Direito Brasileiro</h1>
-        <div class="hidden md:flex gap-2" id="top-nav"></div>
-        <div class="md:hidden">
-          <select id="mobile-nav" class="border px-2 py-1 rounded"></select>
-        </div>
-      </nav>
-    </header>
-    <main class="flex flex-col md:flex-row container mx-auto px-4 py-6 gap-6 flex-grow">
-      <aside class="w-full md:w-1/4 bg-white p-4 rounded shadow" id="side-nav">
-        <h2 class="text-lg font-semibold mb-4">Tópicos</h2>
-      </aside>
-      <section class="flex-grow bg-white p-6 rounded shadow" id="content-pane">
-        <div class="mb-4 flex gap-2">
-          <input type="text" id="term-input" placeholder="Digite um termo..." class="border px-3 py-2 rounded w-full">
-          <button id="explain-term-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Explicar</button>
-          <button id="summarize-btn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Resumir</button>
-        </div>
-        <h2 id="content-title" class="text-2xl font-bold text-blue-700 mb-2">Inicie escolhendo um tópico</h2>
-        <div id="content-body" class="prose max-w-none"></div>
-      </section>
-    </main>
 
-    <footer class="bg-white shadow-inner border-t mt-6 py-4">
-      <div class="container mx-auto px-4">
-        <h2 class="text-lg font-semibold text-gray-700 mb-2">Links Úteis</h2>
-        $1
-<ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-sm text-blue-700 underline mt-4">
-  <li><a href="https://www.tjrj.jus.br" target="_blank">Tribunal de Justiça do Rio de Janeiro (TJRJ)</a></li>
-  <li><a href="https://www.stm.jus.br" target="_blank">Superior Tribunal Militar (STM)</a></li>
-  <li><a href="https://www10.trf2.jus.br" target="_blank">Tribunal Regional Federal da 2ª Região (TRF2)</a></li>
-  <li><a href="https://www.mprj.mp.br" target="_blank">Ministério Público do Estado do Rio de Janeiro (MPRJ)</a></li>
-  <li><a href="https://www.oabrj.org.br" target="_blank">Ordem dos Advogados do Brasil - Seção RJ (OABRJ)</a></li>
-  <li><a href="https://www.dpu.def.br" target="_blank">Defensoria Pública da União (DPU)</a></li>
-  <li><a href="https://www.defensoria.rj.def.br" target="_blank">Defensoria Pública do Estado do Rio de Janeiro (DPE-RJ)</a></li>
-  <li><a href="https://www.procon.rj.gov.br" target="_blank">Procon RJ</a></li>
-  <li><a href="https://procon.carioca.rio" target="_blank">Procon Carioca</a></li>
-  <li><a href="https://www.camara.leg.br" target="_blank">Câmara dos Deputados</a></li>
-  <li><a href="https://www25.senado.leg.br" target="_blank">Senado Federal</a></li>
-$1
+    <div id="app" class="flex flex-col h-screen">
+        <header class="bg-white shadow-md z-10">
+            <div class="container mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center">
+                <h1 class="text-2xl font-bold text-blue-700 md:text-3xl text-center md:text-left w-full md:w-auto">Panorama Interativo do Direito Brasileiro</h1>
+                <!-- Mobile navigation select -->
+                <div class="md:hidden w-full mt-2">
+                    <select id="mobile-nav" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></select>
+                </div>
+            </div>
+        </header>
 
-<section class="bg-white border-t py-6">
-  <div class="container mx-auto px-4">
-    <h2 class="text-lg font-semibold text-gray-700 mb-2">Notícias Jurídicas</h2>
-    <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-sm text-blue-700 underline">
-      <li><a href="https://www.migalhas.com.br" target="_blank">Portal Migalhas</a></li>
-      <li><a href="https://www.conjur.com.br" target="_blank">Consultor Jurídico (Conjur)</a></li>
-      <li><a href="https://www.jota.info" target="_blank">JOTA</a></li>
-    </ul>
-  </div>
-</section>
-  </div>
+        <main class="flex-grow container mx-auto px-4 py-6 flex flex-col md:flex-row gap-8 overflow-hidden">
+            <aside class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 bg-white p-4 rounded-lg shadow-sm overflow-y-auto">
+                <h2 class="text-lg font-bold mb-4 text-gray-700">Áreas do Direito</h2>
+                <nav id="main-sidebar-nav" class="space-y-1 border-b pb-4 mb-4"></nav> <!-- Main topics here -->
 
-  <script>
-    const lawData = {
-  internacional_publico: {
-    title: "Direito Internacional Público",
-    subtopics: {
-      tratados: { title: "Tratados Internacionais", content: "<p>Tratados regem as relações entre Estados soberanos.</p>" },
-      ongs: { title: "Organizações Internacionais", content: "<p>Exemplos: ONU, OMC, OEA.</p>" }
-    }
-  },
-  internacional_privado: {
-    title: "Direito Internacional Privado",
-    subtopics: {
-      conflitos: { title: "Conflito de Leis", content: "<p>Normas para resolver conflitos de jurisdição entre países.</p>" },
-      nacionalidade: { title: "Nacionalidade e Domicílio", content: "<p>Critérios legais para definição de nacionalidade e domicílio.</p>" }
-    }
-  },
-  empresarial: {
-    title: "Direito Empresarial",
-    subtopics: {
-      sociedade: { title: "Sociedade Empresária", content: "<p>Regras sobre constituição e funcionamento de empresas.</p>" },
-      falencia: { title: "Falência e Recuperação", content: "<p>Processos aplicáveis a empresas insolventes.</p>" }
-    }
-  },
-  civil: {
-    title: "Direito Civil",
-    subtopics: {
-      contratos: { title: "Contratos", content: "<p>Regras sobre contratos no Código Civil.</p>" },
-      familia: { title: "Direito de Família", content: "<p>Regula casamento, união estável, guarda, alimentos e adoção.</p>" },
-      sucessoes: { title: "Sucessões", content: "<p>Normas sobre herança e partilha de bens.</p>" }
-    }
-  },
-  penal: {
-    title: "Direito Penal",
-    subtopics: {
-      conceito: { title: "Conceito de Crime", content: "<p>Crime é uma infração penal punível.</p>" },
-      penas: { title: "Penas e Medidas", content: "<p>Classificação das penas e medidas de segurança.</p>" }
-    }
-  },
-  administrativo: {
-    title: "Direito Administrativo",
-    subtopics: {
-      licitacoes: { title: "Licitações", content: "<p>Processo administrativo para contratação.</p>" },
-      servidores: { title: "Servidores Públicos", content: "<p>Regime jurídico e direitos dos servidores.</p>" }
-    }
-  },
-  processual_civil: {
-    title: "Direito Processual Civil",
-    subtopics: {
-      peticao: { title: "Petição Inicial", content: "<p>Primeiro ato do processo civil.</p>" },
-      audiencias: { title: "Audiências", content: "<p>Etapas de instrução e julgamento.</p>" }
-    }
-  },
-  processual_penal: {
-    title: "Direito Processual Penal",
-    subtopics: {
-      inquerito: { title: "Inquérito Policial", content: "<p>Fase investigativa do processo penal.</p>" },
-      prisao: { title: "Prisão e Liberdade Provisória", content: "<p>Medidas cautelares penais.</p>" }
-    }
-  },
-  constitucional: {
-    title: "Direito Constitucional",
-    subtopics: {
-      principios: { title: "Princípios Fundamentais", content: "<p>Normas básicas da Constituição.</p>" },
-      direitos: { title: "Direitos e Garantias", content: "<p>Direitos individuais e coletivos assegurados.</p>" }
-    }
-  },
-  consumidor: {
-    title: "Direito do Consumidor",
-    subtopics: {
-      defesa: { title: "Defesa do Consumidor", content: "<p>Regras de proteção ao consumidor.</p>" },
-      contratos_consumo: { title: "Contratos de Consumo", content: "<p>Regras específicas dos contratos de consumo.</p>" }
-    }
-  },
-  trabalho: {
-    title: "Direito do Trabalho",
-    subtopics: {
-      contrato: { title: "Contrato de Trabalho", content: "<p>Vínculo entre empregado e empregador.</p>" },
-      jornada: { title: "Jornada e Férias", content: "<p>Limites legais de jornada e direitos a férias.</p>" }
-    }
-  },
-  processual_trabalho: {
-    title: "Direito Processual do Trabalho",
-    subtopics: {
-      audiencia: { title: "Audiência Trabalhista", content: "<p>Procedimento perante a Justiça do Trabalho.</p>" },
-      recursos: { title: "Recursos Trabalhistas", content: "<p>Recursos disponíveis no processo trabalhista.</p>" }
-    }
-  },
-  ambiental: {
-    title: "Direito Ambiental",
-    subtopics: {
-      licenciamento: { title: "Licenciamento Ambiental", content: "<p>Autorização para atividades com impacto ambiental.</p>" },
-      crimes: { title: "Crimes Ambientais", content: "<p>Infrações ambientais previstas em lei.</p>" }
-    }
-  },
-  eleitoral: {
-    title: "Direito Eleitoral",
-    subtopics: {
-      voto: { title: "Sistema Eleitoral", content: "<p>Normas sobre eleições e votos.</p>" },
-      inelegibilidade: { title: "Inelegibilidade", content: "<p>Casos em que o cidadão não pode se candidatar.</p>" }
-    }
-  }
-};
+                <h3 class="text-lg font-bold mb-4 text-gray-700">Tópicos Específicos</h3>
+                <nav id="sub-sidebar-nav" class="space-y-1"></nav> <!-- Subtopics here -->
+            </aside>
 
-    const topNav = document.getElementById('top-nav');
-    const mobileNav = document.getElementById('mobile-nav');
-    const sideNav = document.getElementById('side-nav');
-    const contentTitle = document.getElementById('content-title');
-    const contentBody = document.getElementById('content-body');
+            <section id="content-pane" class="flex-grow bg-white p-6 md:p-8 rounded-lg shadow-sm overflow-y-auto">
+                <div class="flex justify-end gap-2 mb-4">
+                    <input type="text" id="term-input" placeholder="Explicar termo..." class="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="explain-term-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors duration-200">Explicar Termo</button>
+                    <button id="summarize-btn" class="bg-green-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-600 transition-colors duration-200">Resumir Conteúdo</button>
+                </div>
+                <h2 id="content-title" class="text-3xl font-bold mb-2 text-blue-800"></h2>
+                <div id="content-body" class="content-area mt-4"></div>
+            </section>
+        </main>
 
-    function renderSideNav(topicKey) {
-      const topic = lawData[topicKey];
-      sideNav.innerHTML = `<h2 class="text-lg font-semibold mb-4">${topic.title}</h2>`;
-      Object.entries(topic.subtopics).forEach(([key, sub]) => {
-        const btn = document.createElement('button');
-        btn.className = "block text-left w-full px-3 py-2 rounded hover:bg-gray-100";
-        btn.textContent = sub.title;
-        btn.addEventListener('click', () => {
-          contentTitle.textContent = sub.title;
-          contentBody.innerHTML = sub.content;
+        <footer class="bg-white shadow-inner border-t mt-6 py-4">
+            <div class="container mx-auto px-4">
+                <h2 class="text-lg font-semibold text-gray-700 mb-2">Links Úteis</h2>
+                <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-sm text-blue-700 underline mt-4">
+                    <li><a href="https://www.stf.jus.br/" target="_blank">Supremo Tribunal Federal (STF)</a></li>
+                    <li><a href="https://www.stj.jus.br/" target="_blank">Superior Tribunal de Justiça (STJ)</a></li>
+                    <li><a href="https://www.tst.jus.br/" target="_blank">Tribunal Superior do Trabalho (TST)</a></li>
+                    <li><a href="https://www.tse.jus.br/" target="_blank">Tribunal Superior Eleitoral (TSE)</a></li>
+                    <li><a href="https://www.oab.org.br/" target="_blank">Ordem dos Advogados do Brasil (OAB Nacional)</a></li>
+                    <li><a href="https://www.tjrj.jus.br" target="_blank">Tribunal de Justiça do Rio de Janeiro (TJRJ)</a></li>
+                    <li><a href="https://www.stm.jus.br" target="_blank">Superior Tribunal Militar (STM)</a></li>
+                    <li><a href="https://www10.trf2.jus.br" target="_blank">Tribunal Regional Federal da 2ª Região (TRF2)</a></li>
+                    <li><a href="https://www.mprj.mp.br" target="_blank">Ministério Público do Estado do Rio de Janeiro (MPRJ)</a></li>
+                    <li><a href="https://www.oabrj.org.br" target="_blank">Ordem dos Advogados do Brasil - Seção RJ (OABRJ)</a></li>
+                    <li><a href="https://www.dpu.def.br" target="_blank">Defensoria Pública da União (DPU)</a></li>
+                    <li><a href="https://www.defensoria.rj.def.br" target="_blank">Defensoria Pública do Estado do Rio de Janeiro (DPE-RJ)</a></li>
+                    <li><a href="https://www.procon.rj.gov.br" target="_blank">Procon RJ</a></li>
+                    <li><a href="https://www.consumidor.gov.br/" target="_blank">Consumidor.gov.br</a></li>
+                    <li><a href="https://www.camara.leg.br" target="_blank">Câmara dos Deputados</a></li>
+                    <li><a href="https://www25.senado.leg.br" target="_blank">Senado Federal</a></li>
+                </ul>
+
+                <section class="bg-white border-t py-6 mt-4">
+                    <div class="container mx-auto px-4">
+                        <h2 class="text-lg font-semibold text-gray-700 mb-2">Notícias Jurídicas</h2>
+                        <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-sm text-blue-700 underline">
+                            <li><a href="https://www.migalhas.com.br" target="_blank">Portal Migalhas</a></li>
+                            <li><a href="https://www.conjur.com.br" target="_blank">Consultor Jurídico (Conjur)</a></li>
+                            <li><a href="https://www.jota.info" target="_blank">JOTA</a></li>
+                        </ul>
+                    </div>
+                </section>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const lawData = {
+            civil: {
+                title: "Direito Civil",
+                introduction: `<p>O Código Civil Brasileiro é a espinha dorsal das relações jurídicas privadas no país. Ele regula desde o nascimento de uma pessoa até a sua morte e a sucessão de seus bens, passando por todos os tipos de contratos, obrigações e direitos. Esta seção oferece um panorama dos seus principais institutos, que moldam o dia a dia de cidadãos e empresas.</p>`,
+                subtopics: {
+                    vicios: {
+                        title: "Vícios e Invalidade do Negócio Jurídico",
+                        content: `<h3>Vícios do Negócio Jurídico e Invalidade</h3><p>A validade de um negócio jurídico depende da vontade livre e consciente das partes. O Código Civil prevê defeitos que podem macular essa vontade, tornando o negócio anulável. O Capítulo V trata especificamente da Invalidade do Negócio Jurídico, que ocorre quando não são observados os requisitos legais.</p><h4>Principais Vícios:</h4><ul><li><strong>Dolo:</strong> Artifício malicioso para induzir alguém a praticar um ato que o prejudica.</li><li><strong>Coação:</strong> Ameaça que vicia a vontade e força a realização de um negócio.</li><li><strong>Estado de Perigo:</strong> Ocorre quando alguém, pressionado pela necessidade de salvar-se, ou a pessoa de sua família, de grave dano conhecido pela outra parte, assume obrigação excessivamente onerosa.</li><li><strong>Lesão:</strong> Prejuízo resultante da desproporção entre as prestações de um contrato no momento de sua celebração.</li><li><strong>Fraude contra Credores:</b> Ato de devedor insolvente que desfalca seu patrimônio para prejudicar os credores.</li></ul>`
+                    },
+                    atos: {
+                        title: "Atos Jurídicos Lícitos e Ilícitos",
+                        content: `<h3>Atos Jurídicos Lícitos e Ilícitos</h3><p>O Código Civil distingue os atos praticados em conformidade com o ordenamento jurídico (lícitos) daqueles que o violam (ilícitos).</p><ul><li><strong>Atos Jurídicos Lícitos (Título II):</strong> São os atos que geram direitos e obrigações dentro da legalidade, como a celebração de um contrato.</li><li><strong>Atos Ilícitos (Título III):</strong> Conforme o Art. 186, "Aquele que, por ação ou omissão voluntária, negligência ou imprudência, violar direito e causar dano a outrem, ainda que exclusivamente moral, comete ato ilícito". O ato ilícito gera a obrigação de reparar o dano (responsabilidade civil).</li></ul>`
+                    },
+                    prescricao: {
+                        title: "Prescrição e Decadência",
+                        content: `<h3>Prescrição e Decadência</h3><p>O Título IV do Código Civil trata da perda de um direito pelo decurso do tempo. Embora parecidos, são institutos distintos.</p><ul><li><strong>Prescrição:</strong> É a perda da pretensão de exigir um direito em juízo, devido à inércia do titular durante um certo tempo. Atinge o direito de ação, mas o direito em si permanece. O código detalha os prazos e as causas que impedem, suspendem ou interrompem a contagem.</li><li><strong>Decadência:</strong> É a perda do próprio direito potestativo por não ter sido exercido no prazo legal ou convencional. Atinge o direito material em si.</li></ul>`
+                    },
+                    obrigacoes: {
+                        title: "Direito das Obrigações",
+                        content: `<h3>Direito das Obrigações</h3><p>Regula o vínculo jurídico entre credor e devedor. O devedor tem o dever de cumprir uma prestação (dar, fazer ou não fazer algo) em favor do credor.</p><h4>Modalidades das Obrigações</h4><ul><li><strong>Obrigações de Dar (Coisa Certa e Incerta):</strong> Entregar um bem específico ou um bem determinado pelo gênero e quantidade.</li><li><strong>Obrigações de Fazer e Não Fazer:</strong> Realizar uma atividade ou abster-se de praticar um ato.</li><li><strong>Alternativas:</strong> O devedor se libera cumprindo uma entre duas ou mais prestações.</li><li><strong>Divisíveis e Indivisíveis:</strong> A prestação pode ou não ser cumprida em partes.</li><li><strong>Solidárias (Ativa e Passiva):</strong> Havendo múltiplos credores ou devedores, cada um pode exigir ou ser obrigado a pagar a dívida toda.</li></ul><h4>Transmissão, Adimplemento e Inadimplemento</h4><p>O Código detalha como as obrigações são transferidas (<strong>Cessão de Crédito, Assunção de Dívida</strong>), como são cumpridas (<strong>Pagamento, Consignação, Novação, Compensação</strong>) e as consequências de seu descumprimento (<strong>Mora, Perdas e Danos, Juros, Cláusula Penal</strong>).</p>`
+                    },
+                    contratos: {
+                        title: "Contratos em Geral",
+                        content: `<h3>Contratos em Geral</h3><p>O contrato é a principal fonte de obrigações. O Código regula sua formação, validade e extinção.</p><h4>Princípios e Formação</h4><p>Baseia-se em princípios como a autonomia da vontade, a boa-fé objetiva e a função social do contrato. A formação se dá com o encontro de vontades (proposta e aceitação).</p><h4>Institutos Importantes</h4><ul><li><strong>Vícios Redibitórios:</strong> Defeitos ocultos na coisa que a tornam imprópria ao uso ou lhe diminuem o valor.</li><li><strong>Evicção:</strong> Perda da coisa em virtude de decisão judicial que a atribui a outrem.</li><li><strong>Exceção de Contrato Não Cumprido:</strong> Nos contratos bilaterais, um contratante não pode exigir o implemento do outro antes de cumprir sua própria obrigação.</li><li><strong>Resolução por Onerosidade Excessiva:</strong> Permite a resolução do contrato se a prestação de uma das partes se tornar excessivamente onerosa devido a acontecimentos extraordinários e imprevisíveis.</li></ul><h4>Espécies de Contrato</h4><p>O Título VI detalha contratos específicos como <strong>Compra e Venda</strong> (com cláusulas especiais de Retrovenda, Preempção, etc.), <strong>Troca ou Permuta</strong> e <strong>Contrato Estimatório</strong>.</p>`
+                    },
+                    sucessao: {
+                        title: "Direito das Sucessões",
+                        content: `<h3>Direito das Sucessões</h3><p>Regula a transferência do patrimônio de uma pessoa após sua morte a seus herdeiros.</p><h4>Sucessão Legítima e Testamentária</h4><ul><li><strong>Sucessão Legítima:</strong> Ocorre por força de lei, na ausência de testamento. Define a ordem de vocação hereditária (descendentes, ascendentes, cônjuge, colaterais).</li><li><strong>Sucessão Testamentária:</strong> Decorre da vontade do falecido expressa em testamento. O Código detalha as formas de testamento (público, cerrado, particular), os legados e outras disposições.</li></ul><h4>Inventário e Partilha</h4><p>Procedimento judicial ou extrajudicial para apurar os bens, direitos e dívidas do falecido e realizar a partilha entre os herdeiros.</p>`
+                    }
+                }
+            },
+            penal: {
+                title: "Direito Penal",
+                introduction: `<p>O Direito Penal é o ramo do direito público que define os crimes e as contravenções, estabelecendo as respectivas penas e medidas de segurança. Seu objetivo é proteger os bens jurídicos mais importantes para a sociedade, como a vida, a liberdade e o patrimônio. Esta seção explora desde os conceitos fundamentais até a aplicação da lei e a teoria do crime.</p>`,
+                subtopics: {
+                    conceito: {
+                        title: "Conceito e Evolução",
+                        content: `<h3>Conceito, Classificação e Evolução</h3><p>O Direito Penal pode ser visto sob duas óticas: <strong>objetiva</strong> (o conjunto de normas que definem crimes e sanções) e <strong>subjetiva</strong> (o direito do Estado de punir, o <i>jus puniendi</i>).</p><p>Sua evolução histórica passou por diversas fases, desde a <strong>vingança privada</strong> até as modernas <strong>escolas penais</strong> (Clássica, Positiva, etc.), que debateram a finalidade da pena e a natureza do crime. Atualmente, discute-se modelos de política criminal como o <strong>Garantismo Penal</strong>, que busca limitar o poder de punir do Estado, e o <strong>Direito Penal Mínimo</strong>, que defende sua aplicação apenas para proteger os bens jurídicos mais essenciais.</p>`
+                    },
+                    lei: {
+                        title: "A Lei Penal",
+                        content: `<h3>A Lei Penal no Tempo e no Espaço</h3><h4>Eficácia no Tempo</h4><ul><li><strong>Tempo do Crime:</strong> Adota-se a <strong>Teoria da Atividade</strong>, considerando-se praticado o crime no momento da ação ou omissão, ainda que outro seja o momento do resultado.</li><li><strong>Sucessão de Leis:</strong> Uma nova lei penal só pode retroagir para beneficiar o réu (<strong><i>lex mitior</i></strong>). Se a lei nova for mais grave (<strong><i>lex gravior</i></strong>) ou criar um novo crime (<strong><i>novatio legis incriminadora</i></strong>), ela não se aplica a fatos anteriores. A <strong><i>abolitio criminis</i></strong> ocorre quando uma lei nova deixa de considerar um fato como criminoso.</li></ul><h4>Eficácia no Espaço</h4><ul><li><strong>Princípio da Territorialidade:</strong> Aplica-se a lei brasileira aos crimes cometidos no território nacional.</li><li><strong>Extraterritorialidade:</strong> Em certos casos, a lei brasileira pode ser aplicada a crimes cometidos no estrangeiro, de forma incondicionada (ex: crimes contra a vida do Presidente) ou condicionada (ex: crimes que o Brasil se obrigou a reprimir por tratado).</li></ul>`
+                    },
+                    teoria_crime: {
+                        title: "Teoria Geral do Crime",
+                        content: `<h3>Teoria Geral do Crime</h3><p>O conceito analítico de crime, mais aceito no Brasil, o define como um <strong>FATO TÍPICO, ILÍCITO e CULPÁVEL</strong>.</p><h4>Elementos do Crime</h4><ul><li><strong>Sujeitos:</strong> O <strong>sujeito ativo</strong> é quem pratica o crime. O <strong>sujeito passivo</strong> é o titular do bem jurídico lesado. Pessoas jurídicas podem ser sujeito ativo de crimes ambientais.</li><li><strong>Fato Típico:</strong> É a conduta humana (ação ou omissão) que se encaixa perfeitamente na descrição de um tipo penal. Seus elementos são: conduta, resultado, nexo causal e tipicidade.</li><li><strong>Ilicitude (ou Antijuridicidade):</strong> É a contrariedade do fato típico com o ordenamento jurídico. Existem causas que excluem a ilicitude, como a legítima defesa, o estado de necessidade, o estrito cumprimento de dever legal e o exercício regular de direito.</li><li><strong>Culpabilidade:</strong> É o juízo de reprovação sobre o autor do fato. Seus elementos são: imputabilidade, potencial consciência da ilicitude e exigibilidade de conduta diversa.</li></ul>`
+                    },
+                    iter_criminis: {
+                        title: "Iter Criminis e Classificação dos Crimes",
+                        content: `<h3>Fases do Crime (Iter Criminis)</h3><p>É o caminho percorrido para a realização do crime.</p><ol><li><strong>Cogitação:</strong> Fase interna, não punível.</li><li><strong>Preparação:</strong> Atos para viabilizar o crime. Em regra, não são puníveis, salvo se constituírem crime autônomo.</li><li><strong>Execução:</strong> Início da realização do tipo penal. A partir daqui, a tentativa pode ser punida.</li><li><strong>Consumação:</strong> Ocorre quando todos os elementos do tipo penal são realizados.</li></ol><h4>Classificação Doutrinária</h4><p>Os crimes podem ser classificados de diversas formas:</p><ul><li><strong>Doloso, Culposo e Preterdoloso:</strong> Conforme a intenção do agente.</li><li><strong>Comissivo e Omissivo:</strong> Praticado por uma ação ou por uma inação.</li><li><strong>Instantâneo e Permanente:</strong> A consumação se esgota em um momento ou se prolonga no tempo.</li><li><strong>Material, Formal e de Mera Conduta:</strong> Conforme a exigência de um resultado naturalístico.</li></ul>`
+                    },
+                    pena: {
+                        title: "Aplicação da Pena",
+                        content: `<h3>Aplicação da Pena</h3><p>O juiz fixa a pena seguindo um sistema trifásico:</p><ol><li><strong>Fixação da Pena-Base:</strong> O juiz analisa as circunstâncias judiciais do Art. 59 do Código Penal (culpabilidade, antecedentes, conduta social, etc.) e fixa a pena entre o mínimo e o máximo legal.</li><li><strong>Circunstâncias Atenuantes e Agravantes:</strong> Na segunda fase, o juiz considera as circunstâncias que diminuem (ex: confissão) ou aumentam (ex: reincidência) a pena.</li><li><strong>Causas de Diminuição e Aumento:</strong> Na terceira fase, são aplicadas as causas que podem levar a pena para abaixo do mínimo ou acima do máximo.</li></ol><p>A <strong>reincidência</strong>, que ocorre quando o agente comete novo crime após o trânsito em julgado de sentença condenatória anterior, é uma importante circunstância agravante.</p>`
+                    }
+                }
+            },
+            administrativo: {
+                title: "Direito Administrativo",
+                introduction: `<p>O Direito Administrativo organiza o funcionamento do Estado, regulando a atividade da Administração Pública e sua relação com os cidadãos. Ele se baseia em princípios como legalidade, impessoalidade, moralidade e eficiência, buscando sempre o interesse público. Esta seção aborda conceitos chave sobre a estrutura do Estado e o uso dos bens públicos.</p>`,
+                subtopics: {
+                    jurisdicao: {
+                        title: "Sistema de Jurisdição Única",
+                        content: `<h3>Sistema de Jurisdição Única</h3><p>O Brasil adota o sistema de jurisdição única, também conhecido como sistema inglês. Isso significa que <strong>apenas o Poder Judiciário</strong> tem a competência para proferir decisões com força de coisa julgada material, ou seja, decisões definitivas que não podem mais ser modificadas.</p><p>Qualquer lesão ou ameaça a direito pode ser levada à apreciação do Judiciário, conforme o princípio da inafastabilidade da jurisdição (Art. 5º, XXXV, da Constituição Federal).</p>`
+                    },
+                    entidades: {
+                        title: "Entidades da Administração",
+                        content: `<h3>Sociedade de Economia Mista</h3><p>É uma entidade da Administração Pública Indireta, com personalidade jurídica de <strong>direito privado</strong>. Suas características principais são:</p><ul><li>É criada por autorização de lei específica.</li><li>Sua forma é obrigatoriamente de <strong>Sociedade Anônima (S.A.)</strong>.</li><li>O controle acionário (maioria das ações com direito a voto) pertence a um ente público (União, Estados, DF ou Municípios).</li><li>Exemplos: Banco do Brasil, Petrobras.</li></ul>`
+                    },
+                    licitacao: {
+                        title: "Licitação",
+                        content: `<h3>Licitação</h3><p>É o procedimento administrativo obrigatório para as contratações do Poder Público, visando garantir a isonomia e selecionar a proposta mais vantajosa.</p><h4>Fases Importantes</h4><ul><li><strong>Habilitação:</strong> Verificação da aptidão dos licitantes para contratar com a Administração. Envolve análise de regularidade jurídica, técnica, fiscal, social, trabalhista e econômico-financiera.</li><li><strong>Encerramento:</strong> A licitação pode ser encerrada por anulação (em caso de ilegalidade) ou revogação (por conveniência e oportunidade, ou seja, por razões de interesse público).</li></ul>`
+                    },
+                    servidores: {
+                        title: "Servidores Públicos",
+                        content: `<h3>Sindicalização e Greve de Servidores Públicos</h3><p>A Constituição Federal garante direitos distintos para servidores civis e militares.</p><ul><li><strong>Servidores Civis:</strong> Têm direito à livre associação sindical. O direito de greve é assegurado, mas exercido nos termos e limites definidos em lei específica.</li><li><strong>Servidores Militares:</strong> São vedados de sindicalização e do exercício do direito de greve.</li></ul>`
+                    },
+                    bens: {
+                        title: "Bens Públicos",
+                        content: `<h3>Uso e Espécies de Bens Públicos</h3><h4>Uso Privativo</h4><p>O particular pode usar um bem público de forma exclusiva mediante autorização ou permissão.</p><ul><li><strong>Autorização de Uso:</strong> Ato unilateral, discricionário (a administração pode conceder ou não) e precário (pode ser revogado a qualquer tempo). Geralmente não exige licitação e é voltado para interesse predominantemente particular.</li><li><strong>Permissão de Uso:</strong> Também é um ato unilateral, discricionário e precário, mas geralmente envolve um interesse público secundário.</li></ul><h4>Espécies</h4><ul><li><strong>Terras Devolutas:</strong> São terras públicas sem destinação específica e que não integram o patrimônio de um particular. Em regra, pertencem aos Estados, com exceções que as atribuem à União (ex: áreas indispensáveis à defesa das fronteiras).</li><li><strong>Ilhas:</strong> A titularidade depende da localização. Ilhas marítimas e as em rios que banham mais de um Estado pertencem, em regra, à União.</li></ul>`
+                    }
+                }
+            },
+            judiciario: {
+                title: "Sistema Judiciário e Jurisprudência",
+                introduction: `<p>O Poder Judiciário brasileiro é o guardião da Constituição e das leis, responsável por resolver conflitos e garantir direitos. Sua estrutura é complexa, dividida entre as justiças Federal e Estadual. A jurisprudência, por sua vez, é a ferramenta que uniformiza as decisões judiciais, trazendo segurança e previsibilidade para a sociedade.</p>`,
+                subtopics: {
+                    jurisprudencia: {
+                        title: "O Papel da Jurisprudência",
+                        content: `<h3>O Papel da Jurisprudência</h3><p>Jurisprudência é o conjunto de decisões e interpretações que os tribunais dão às leis. Em um país de dimensões continentais como o Brasil, ela é fundamental para <strong>uniformizar o entendimento</strong> dos tribunais.</p><p>Sua função é gerar <strong>segurança jurídica</strong>, garantindo que casos semelhantes recebam soluções semelhantes, independentemente de onde sejam julgados. Além disso, serve como um guia poderoso para advogados em suas petições e estratégias processuais.</p>`
+                    },
+                    estrutura: {
+                        title: "Estrutura do Poder Judiciário",
+                        content: `<h3>Estrutura do Poder Judiciário</h3><p>O Judiciário brasileiro é organizado em esferas Federal e Estadual.</p><h4>Justiça Federal</h4><div class="space-y-4 flex flex-col items-center"><div class="w-full max-w-md bg-blue-100 text-blue-900 font-semibold p-3 rounded-lg text-center shadow">STF (Supremo Tribunal Federal)</div><div class="text-2xl font-bold text-blue-400">↓</div><div class="w-full max-w-md bg-indigo-100 text-indigo-900 font-semibold p-3 rounded-lg text-center shadow">Tribunais Superiores (STJ, TST, TSE)</div><div class="text-2xl font-bold text-indigo-400">↓</div><div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl"><div class="bg-gray-100 p-3 rounded-lg text-center shadow"><h5 class="font-semibold">Tribunais Regionais Federais (TRFs)</h5></div><div class="bg-gray-100 p-3 rounded-lg text-center shadow"><h5 class="font-semibold">Tribunais Regionais do Trabalho (TRTs)</h5></div><div class="bg-gray-100 p-3 rounded-lg text-center shadow"><h5 class="font-semibold">Tribunais Regionais Eleitorais (TREs)</h5></div><div class="bg-gray-100 p-3 rounded-lg text-center shadow"><h5 class="font-semibold">Justiça Militar da União</h5></div></div></div><h4 class="mt-6">Justiça Estadual</h4><p>Possui <strong>competência residual</strong>, ou seja, julga todas as causas que não são de competência das justiças especializadas (Federal, Trabalho, Eleitoral e Militar). É o ramo que mais recebe ações, incluindo a maioria dos crimes comuns, ações de família, execuções fiscais e ações cíveis em general.</p><p>Sua estrutura básica é composta por <strong>Juízes de Direito</strong> (1ª instância) e <strong>Tribunais de Justiça - TJ</strong> (2ª instância).</p>`
+                    }
+                }
+            },
+            empresarial: {
+                title: "Direito Empresarial",
+                introduction: `<p>O Direito Empresarial rege as atividades das empresas e dos empresários. Ele abrange desde a constituição de uma sociedade até os títulos de crédito que viabilizam suas operações e a proteção de seus ativos intangíveis, como marcas e patentes, que são cruciais para a competitividade no mercado.</p>`,
+                subtopics: {
+                    credito: {
+                        title: "Títulos de Crédito",
+                        content: `<h3>Cédulas de Crédito Bancário (CCB)</h3><p>A Cédula de Crédito Bancário é um título de crédito que representa uma promessa de pagamento em dinheiro, decorrente de uma operação de crédito de qualquer modalidade.</p><ul><li><strong>Natureza:</strong> É um título causal, pois está vinculada à operação que a originou.</li><li><strong>Emissão:</strong> É emitida por pessoa física ou jurídica em favor de uma instituição financeira.</li><li><strong>Garantia:</strong> Pode ser emitida com ou sem garantia (real ou fidejussória).</li><li><strong>Requisitos:</strong> A lei detalha os requisitos essenciais que devem constar no título para sua validade.</li></ul>`
+                    },
+                    propriedade: {
+                        title: "Propriedade Industrial",
+                        content: `<h3>Propriedade Industrial (INPI)</h3><p>A proteção da propriedade industrial no Brasil é administrada pelo <strong>Instituto Nacional da Propriedade Industrial (INPI)</strong>, uma autarquia federal.</p><h4>Patentes</h4><ul><li><strong>O que é:</strong> Um título de propriedade temporária sobre uma invenção ou modelo de utilidade, conferido pelo Estado. Garante ao titular o direito de impedir terceiros de produzir, usar ou vender o objeto da patente sem seu consentimento.</li><li><strong>O que não é patenteável:</strong> A lei proíbe a patente de descobertas, teorias científicas, e tudo o que for contrário à moral, aos bons costumes e à segurança, ordem e saúde públicas.</li></ul><h4>Marcas</h4><ul><li><strong>O que é:</strong> Sinal distintivo visualmente perceptível que identifica produtos e serviços.</li><li><strong>Aquisição do Direito:</strong> A propriedade da marca e seu uso exclusivo em todo o território nacional são adquiridos pelo <strong>registro validamente expedido</strong> no INPI.</li><li><strong>Prioridade:</strong> É assegurado o direito de prioridade ao pedido de registro depositado em país que mantenha acordo com o Brasil.</li></ul>`
+                    }
+                }
+            },
+            internacional_publico: {
+                title: "Direito Internacional Público",
+                introduction: `<p>O Direito Internacional Público rege as relações entre Estados soberanos e organizações internacionais, buscando a paz, a cooperação e a solução pacífica de controvérsias. É um ramo essencial para a convivência global e o estabelecimento de normas que transcendem as fronteiras nacionais.</p>`,
+                subtopics: {
+                    tratados: { title: "Tratados Internacionais", content: `<p>Os tratados internacionais são acordos formais celebrados entre Estados ou entre Estados e organizações internacionais, com o objetivo de criar direitos e obrigações mútuas. São a principal fonte do Direito Internacional Público e podem abordar os mais diversos temas, desde direitos humanos e meio ambiente até comércio e segurança. No Brasil, para que um tratado tenha validade interna, ele precisa ser aprovado pelo Congresso Nacional e promulgado pelo Presidente da República.</p>` },
+                    ongs: { title: "Organizações Internacionais", content: `<p>Organizações Internacionais (OIs) são entidades criadas por meio de tratados entre dois ou mais Estados, com finalidades específicas e estrutura permanente. Exemplos proeminentes incluem a Organização das Nações Unidas (ONU), a Organização Mundial do Comércio (OMC) e a Organização dos Estados Americanos (OEA). Elas desempenham um papel crucial na diplomacia, na cooperação global e na formulação de normas internacionais, embora não possuam soberania.</p>` }
+                }
+            },
+            internacional_privado: {
+                title: "Direito Internacional Privado",
+                introduction: `<p>O Direito Internacional Privado lida com conflitos de leis no espaço, determinando qual lei nacional deve ser aplicada a relações jurídicas que envolvem elementos de diferentes sistemas jurídicos (ex: um contrato entre uma empresa brasileira e uma alemã). Seu objetivo é dar segurança jurídica a essas relações transnacionais.</p>`,
+                subtopics: {
+                    conflitos: { title: "Conflito de Leis", content: `<p>O conflito de leis ocorre quando uma situação jurídica apresenta conexão com mais de um ordenamento jurídico nacional. O Direito Internacional Privado estabelece regras para determinar qual lei (a lei do domicílio, a lei do local do ato, a lei da nacionalidade, etc.) deve ser aplicada para resolver a questão, evitando a insegurança jurídica e garantindo a justiça.</p>` },
+                    nacionalidade: { title: "Nacionalidade e Domicílio", content: `<p>A nacionalidade é o vínculo jurídico-político que liga um indivíduo a um Estado, conferindo-lhe direitos e deveres. O domicílio, por sua vez, é o local onde a pessoa física ou jurídica estabelece sua residência ou sede com ânimo definitivo. O Direito Internacional Privado utiliza esses conceitos para definir a lei aplicável em diversas situações, como questões de estado e capacidade das pessoas.</p>` }
+                }
+            },
+            processual_civil: {
+                title: "Direito Processual Civil",
+                introduction: `<p>O Direito Processual Civil é o conjunto de normas que regulam o processo judicial cível, ou seja, o caminho que se deve seguir em juízo para resolver conflitos de interesses que não envolvam crimes ou relações de trabalho ou tributárias. Ele disciplina os atos processuais, os prazos, os recursos e as competências dos órgãos judiciais.</p>`,
+                subtopics: {
+                    peticao: { title: "Petição Inicial", content: `<p>A petição inicial é o documento que dá início ao processo judicial civil. Nela, o autor expõe os fatos, os fundamentos jurídicos do seu pedido e formula a sua pretensão perante o juiz. Deve conter os requisitos essenciais previstos em lei, como a qualificação das partes, a causa de pedir, o pedido, o valor da causa e as provas que pretende produzir.</p>` },
+                    audiencias: { title: "Audiências", content: `<p>As audiências são atos processuais nos quais as partes e seus advogados comparecem perante o juiz para tratar de questões do processo. Podem ser de conciliação (tentativa de acordo), de instrução (produção de provas como depoimentos e oitivas de testemunhas) e de julgamento. São momentos importantes para o desenvolvimento do processo e para a busca da verdade real.</p>` }
+                }
+            },
+            processual_penal: {
+                title: "Direito Processual Penal",
+                introduction: `<p>O Direito Processual Penal é o ramo do direito público que estabelece as regras e os procedimentos a serem seguidos para a apuração de crimes, a aplicação de penas e a garantia dos direitos individuais no âmbito penal. Ele disciplina desde a fase de investigação até o julgamento e a execução da pena.</p>`,
+                subtopics: {
+                    inquerito: { title: "Inquérito Policial", content: `<p>O inquérito policial é um procedimento administrativo pré-processual, conduzido pela polícia judiciária, que visa colher elementos de informação sobre a autoria e a materialidade de um crime. Seu objetivo é subsidiar o Ministério Público para que este decida se oferece ou não a denúncia. Não há contraditório pleno ou ampla defesa nesta fase, pois não é um processo judicial.</p>` },
+                    prisao: { title: "Prisão e Liberdade Provisória", content: `<p>O Direito Processual Penal regula as formas de restrição da liberdade antes de uma condenação definitiva. A prisão pode ser em flagrante, temporária ou preventiva. A liberdade provisória é a possibilidade de o acusado responder ao processo em liberdade, mediante o cumprimento de certas condições ou pagamento de fiança, quando não se fizerem presentes os requisitos para a manutenção da prisão cautelar.</p>` }
+                }
+            },
+            constitucional: {
+                title: "Direito Constitucional",
+                introduction: `<p>O Direito Constitucional é a base de todo o ordenamento jurídico brasileiro. Ele estuda a Constituição Federal, a lei suprema do país, que organiza o Estado, define as competências dos poderes (Executivo, Legislativo e Judiciário), estabelece os direitos e garantias fundamentais dos cidadãos e os princípios que regem a sociedade.</p>`,
+                subtopics: {
+                    principios: { title: "Princípios Fundamentais", content: `<p>Os princípios fundamentais da Constituição Federal (Título I) são as normas que servem de base para a organização do Estado e da sociedade brasileira. Incluem o Estado Democrático de Direito, a soberania, a cidadania, a dignidade da pessoa humana, os valores sociais do trabalho e da livre iniciativa, e o pluralismo político. Eles orientam toda a interpretação e aplicação das demais leis.</p>` },
+                    rights: { title: "Direitos e Garantias Individuais e Coletivos", content: `<p>O Título II da Constituição Federal assegura os direitos e garantias fundamentais, que são essenciais para a dignidade da pessoa humana. Incluem o direito à vida, à liberdade, à igualdade, à segurança e à propriedade, bem como as garantias que permitem a sua efetivação, como o habeas corpus e o mandado de segurança. São cláusulas pétreas, não podendo ser abolidos.</p>` }
+                }
+            },
+            consumidor: {
+                title: "Direito do Consumidor",
+                introduction: `<p>O Código de Defesa do Consumidor (CDC) é uma lei específica que protege os direitos dos consumidores nas relações de consumo, que são aquelas que envolvem um fornecedor de produtos ou serviços e um consumidor final. Ele visa reequilibrar a relação, que muitas vezes é desigual, garantindo a vulnerabilidade do consumidor.</p>`,
+                subtopics: {
+                    defesa: { title: "Defesa do Consumidor", content: `<p>A defesa do consumidor é um direito fundamental e abrange a proteção contra práticas abusivas, a informação clara sobre produtos e serviços, a prevenção e reparação de danos (materiais e morais), e a facilitação da defesa dos seus direitos em juízo, incluindo a inversão do ônus da prova em certas situações.</p>` },
+                    contratos_consumo: { title: "Contratos de Consumo", content: `<p>Os contratos de consumo são regidos por regras específicas do CDC, que buscam proteger o consumidor. Cláusulas abusivas são consideradas nulas, e a interpretação do contrato deve ser a mais favorável ao consumidor. Inclui regras sobre a oferta, publicidade, direito de arrependimento (para compras fora do estabelecimento comercial) e responsabilidade por vícios e fatos do produto ou serviço.</p>` }
+                }
+            },
+            trabalho: {
+                title: "Direito do Trabalho",
+                introduction: `<p>O Direito do Trabalho é o ramo do direito que regula as relações entre empregados e empregadores, com foco na proteção dos direitos do trabalhador. Ele estabelece as normas sobre contratos de trabalho, jornada, salário, férias, segurança no trabalho, entre outros aspectos, buscando o equilíbrio entre as partes.</p>`,
+                subtopics: {
+                    contrato: { title: "Contrato de Trabalho", content: `<p>O contrato de trabalho é o acordo, tácito ou expresso, que estabelece o vínculo empregatício, caracterizado pela pessoalidade, não eventualidade, subordinação e onerosidade. A Consolidação das Leis do Trabalho (CLT) e outras leis específicas regulam os tipos de contrato (por prazo determinado, indeterminado, intermitente, etc.) e os direitos e deveres de ambas as partes.</p>` },
+                    jornada: { title: "Jornada de Trabalho e Férias", content: `<p>A jornada de trabalho é o tempo em que o empregado está à disposição do empregador, com limites diários e semanais estabelecidos por lei e Constituição. As horas extras são pagas com adicional. As férias são um direito do trabalhador a um período de descanso remunerado após cada 12 meses de trabalho, visando a recuperação física e mental.</p>` }
+                }
+            },
+            processual_trabalho: {
+                title: "Direito Processual do Trabalho",
+                introduction: `<p>O Direito Processual do Trabalho é o conjunto de normas que regulam o processo judicial na Justiça do Trabalho, que é competente para julgar conflitos entre empregados e empregadores. Ele possui ritos e princípios próprios, buscando celeridade e a proteção do trabalhador.</p>`,
+                subtopics: {
+                    audiencia: { title: "Audiência Trabalhista", content: `<p>A audiência trabalhista é o ato processual central na Justiça do Trabalho. É dividida em conciliação (tentativa de acordo), instrução (produção de provas, como depoimentos das partes e testemunhas) e julgamento. A presença das partes é de suma importância, e o não comparecimento pode gerar revelia ou arquivamento do processo.</p>` },
+                    recursos: { title: "Recursos Trabalhistas", content: `<p>Os recursos trabalhistas são os meios pelos quais as partes podem buscar a revisão de decisões proferidas na Justiça do Trabalho. Os mais comuns são o Recurso Ordinário (para o TRT), o Recurso de Revista (para o TST) e os Embargos. Cada um possui requisitos e prazos específicos para sua interposição.</p>` }
+                }
+            },
+            ambiental: {
+                title: "Direito Ambiental",
+                introduction: `<p>O Direito Ambiental é o ramo do direito que trata da proteção do meio ambiente e do uso sustentável dos recursos naturais. Ele busca conciliar o desenvolvimento econômico com a preservação ambiental, estabelecendo normas sobre licenciamento, crimes ambientais, responsabilidade por danos ao meio ambiente, entre outros temas.</p>`,
+                subtopics: {
+                    licenciamento: { title: "Licenciamento Ambiental", content: `<p>O licenciamento ambiental é um procedimento administrativo obrigatório para empreendimentos ou atividades que possam causar degradação ambiental. Ele avalia a viabilidade ambiental do projeto e estabelece as condições para sua instalação, operação e ampliação, visando minimizar os impactos negativos. É um instrumento essencial da política ambiental.</p>` },
+                    crimes: { title: "Crimes Ambientais", content: `<p>Os crimes ambientais são condutas lesivas ao meio ambiente tipificadas em lei (Lei nº 9.605/98 - Lei de Crimes Ambientais). Podem ser praticados por pessoas físicas ou jurídicas e abrangem desde a poluição até o desmatamento ilegal, pesca predatória e maus-tratos a animais. As penas variam conforme a gravidade da infração.</p>` }
+                }
+            },
+            eleitoral: {
+                title: "Direito Eleitoral",
+                introduction: `<p>O Direito Eleitoral é o ramo do direito público que disciplina o processo eleitoral, garantindo a legitimidade e a regularidade das eleições. Ele abrange as normas sobre o alistamento eleitoral, a propaganda política, o registro de candidaturas, o voto, a fiscalização e os crimes eleitorais.</p>`,
+                subtopics: {
+                    voto: { title: "Sistema Eleitoral", content: `<p>O sistema eleitoral brasileiro define como os votos são convertidos em cadeiras nos cargos eletivos (Presidente, senadores, deputados, prefeitos, vereadores). Os principais sistemas são o majoritário (para cargos executivos e senadores) e o proporcional (para deputados e vereadores), com regras específicas para sua aplicação e cálculo de distribuição de vagas.</p>` },
+                    inelegibilidade: { title: "Inelegibilidade", content: `<p>A inelegibilidade é a restrição à capacidade de um cidadão ser votado, ou seja, de se candidatar a um cargo eletivo. As causas de inelegibilidade estão previstas na Constituição e em leis complementares (como a Lei da Ficha Limpa) e visam proteger a probidade administrativa, a moralidade e a normalidade do processo eleitoral. São aplicadas no momento do registro da candidatura.</p>` }
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainSidebarNav = document.getElementById('main-sidebar-nav'); // Renomeado de topNav
+            const mobileNav = document.getElementById('mobile-nav');
+            const subSidebarNav = document.getElementById('sub-sidebar-nav'); // Renomeado de sideNav
+            const contentTitle = document.getElementById('content-title');
+            const contentBody = document.getElementById('content-body');
+            const termInput = document.getElementById('term-input');
+            const explainTermBtn = document.getElementById('explain-term-btn');
+            const summarizeBtn = document.getElementById('summarize-btn');
+
+            let currentTopicKey = 'civil';
+            let currentSubtopicKey = null;
+
+            const showMessageBox = (message) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'message-box-overlay fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-[9999]';
+                document.body.appendChild(overlay);
+
+                const messageBox = document.createElement('div');
+                messageBox.className = 'message-box bg-white p-6 rounded-lg shadow-xl max-w-md text-center flex flex-col items-center z-[10000]';
+                messageBox.innerHTML = `
+                    <p class="text-gray-800 text-lg mb-4">${message}</p>
+                    <button class="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200" onclick="this.parentNode.parentNode.remove();">Fechar</button>
+                `;
+                document.body.appendChild(messageBox);
+
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        messageBox.remove();
+                        overlay.remove();
+                    }
+                });
+            };
+
+            const showLoadingMessage = (message) => {
+                const existingOverlay = document.getElementById('loading-overlay');
+                if (existingOverlay) return;
+
+                const overlay = document.createElement('div');
+                overlay.className = 'message-box-overlay fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-[9999]';
+                overlay.id = 'loading-overlay';
+                document.body.appendChild(overlay);
+
+                const loadingBox = document.createElement('div');
+                loadingBox.className = 'bg-white p-6 rounded-lg shadow-xl text-center flex flex-col items-center justify-center z-[10000]';
+                loadingBox.id = 'loading-box';
+                loadingBox.innerHTML = `
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+                    <p class="text-gray-800 text-lg">${message}</p>
+                `;
+                document.body.appendChild(loadingBox);
+            };
+
+            const hideLoadingMessage = () => {
+                const loadingOverlay = document.getElementById('loading-overlay');
+                const loadingBox = document.getElementById('loading-box');
+                if (loadingOverlay) loadingOverlay.remove();
+                if (loadingBox) loadingBox.remove();
+            };
+
+            const callGeminiAPI = async (prompt) => {
+                showLoadingMessage("A processar, por favor aguarde...");
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+
+                // IMPORTANTE: PARA PUBLICAÇÃO EXTERNA, SUBSTITUA "SUA_CHAVE_DE_API_REAL_AQUI"
+                // PELA SUA CHAVE DE API REAL DO GOOGLE AI STUDIO (https://aistudio.google.com/app/apikey).
+                // MANTENHA AS ASPAS DUPLAS!
+                const apiKey = ""; // <--- VOCÊ DEVE SUBSTITUIR ESTA LINHA COM A SUA CHAVE REAL
+
+                if (!apiKey || apiKey === "SUA_CHAVE_DE_API_REAL_AQUI") {
+                    hideLoadingMessage();
+                    showMessageBox("ERRO: A chave da API Gemini não foi configurada. Por favor, insira a sua chave de API para que as funcionalidades de IA funcionem.");
+                    return;
+                }
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    hideLoadingMessage();
+
+                    if (response.ok) {
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            showMessageBox(text);
+                        } else {
+                            showMessageBox("Resposta da API inválida ou vazia. Não foi possível gerar uma resposta.");
+                        }
+                    } else {
+                        let errorMessage = `Erro da API: ${response.status} - ${response.statusText}. `;
+                        if (result.error && result.error.message) {
+                            errorMessage += `Detalhes: ${result.error.message}`;
+                        }
+                        showMessageBox(errorMessage);
+                        console.error("Erro na API:", result.error || response.statusText);
+                    }
+                } catch (error) {
+                    hideLoadingMessage();
+                    console.error("Erro na comunicação com a API Gemini:", error);
+                    showMessageBox("Ocorreu um erro de rede ou comunicação. Por favor, verifique a sua ligação à internet.");
+                }
+            };
+
+            summarizeBtn.addEventListener('click', () => {
+                const currentContent = contentBody.innerText;
+                if (currentContent.trim()) {
+                    const prompt = `Resuma o seguinte texto sobre direito brasileiro de forma clara e concisa: "${currentContent}"`;
+                    callGeminiAPI(prompt);
+                } else {
+                    showMessageBox("Não há conteúdo para resumir no momento.");
+                }
+            });
+
+            explainTermBtn.addEventListener('click', () => {
+                const term = termInput.value.trim();
+                if (term) {
+                    const currentTopic = lawData[currentTopicKey] ? lawData[currentTopicKey].title : "Direito Brasileiro (contexto geral)";
+                    const prompt = `No contexto de "${currentTopic}", explique o termo "${term}" de forma clara e concisa em português (Brasil).`;
+                    callGeminiAPI(prompt);
+                } else {
+                    showMessageBox("Por favor, digite um termo para explicar.");
+                }
+            });
+
+            // Nova função para renderizar os tópicos principais na barra lateral
+            const populateMainSidebarNav = () => {
+                mainSidebarNav.innerHTML = ''; // Limpa a navegação principal anterior
+                Object.keys(lawData).forEach(topicKey => {
+                    const topic = lawData[topicKey];
+                    const btn = document.createElement('button');
+                    btn.dataset.topic = topicKey;
+                    btn.className = "main-nav-button block w-full text-left px-4 py-2 rounded-md font-medium text-base transition-colors duration-200 hover:bg-blue-50";
+                    btn.textContent = topic.title;
+                    mainSidebarNav.appendChild(btn);
+                });
+            };
+
+            // Função para renderizar os sub-tópicos na barra lateral
+            const renderSubtopicNav = (topicKey) => {
+                const topic = lawData[topicKey];
+                subSidebarNav.innerHTML = ''; // Limpa os sub-tópicos anteriores
+                Object.keys(topic.subtopics).forEach((subKey) => {
+                    const subtopic = topic.subtopics[subKey];
+                    const link = document.createElement('a');
+                    link.href = '#';
+                    link.dataset.topic = topicKey;
+                    link.dataset.subtopic = subKey;
+                    link.textContent = subtopic.title;
+                    link.className = 'side-nav-link block px-4 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-100 transition-colors duration-200';
+                    subSidebarNav.appendChild(link);
+                });
+            };
+
+            const renderContent = (topicKey, subtopicKey = null) => {
+                currentTopicKey = topicKey;
+                currentSubtopicKey = subtopicKey;
+
+                const topic = lawData[topicKey];
+                if (subtopicKey && topic.subtopics[subtopicKey]) {
+                    const subtopic = topic.subtopics[subtopicKey];
+                    contentTitle.textContent = subtopic.title;
+                    contentBody.innerHTML = subtopic.content;
+                } else {
+                    contentTitle.textContent = topic.title;
+                    contentBody.innerHTML = topic.introduction || `<p>Selecione um sub-tópico para ver o conteúdo.</p>`;
+                }
+                document.getElementById('content-pane').scrollTop = 0;
+            };
+
+            const setActiveState = (topicKey, subtopicKey = null) => {
+                // Ativa o botão principal na barra lateral
+                document.querySelectorAll('.main-nav-button').forEach(btn => {
+                    btn.classList.toggle('nav-button-active', btn.dataset.topic === topicKey);
+                });
+
+                // Ativa o link do sub-tópico na barra lateral
+                document.querySelectorAll('.side-nav-link').forEach(link => {
+                     link.classList.toggle('side-nav-link-active', link.dataset.subtopic === subtopicKey && link.dataset.topic === topicKey);
+                });
+
+                // Sincroniza o select mobile
+                if (mobileNav.value !== topicKey) {
+                    mobileNav.value = topicKey;
+                }
+            };
+            
+            const updateState = (topicKey, subtopicKey = null) => {
+                renderSubtopicNav(topicKey); // Renderiza os sub-tópicos da nova área
+                // Define o primeiro sub-tópico como padrão se nenhum for especificado e houver sub-tópicos
+                if (subtopicKey === null && lawData[topicKey].subtopics && Object.keys(lawData[topicKey].subtopics).length > 0) {
+                    subtopicKey = Object.keys(lawData[topicKey].subtopics)[0];
+                } else if (subtopicKey === null && (!lawData[topicKey].subtopics || Object.keys(lawData[topicKey].subtopics).length === 0)) {
+                    // Se não houver sub-tópicos, garante que currentSubtopicKey seja nulo
+                    subtopicKey = null;
+                }
+                renderContent(topicKey, subtopicKey);
+                setActiveState(topicKey, subtopicKey);
+            };
+
+            // Event listener para a navegação principal da barra lateral
+            mainSidebarNav.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON' && e.target.classList.contains('main-nav-button')) {
+                    const topicKey = e.target.dataset.topic;
+                    updateState(topicKey);
+                }
+            });
+            
+            // Event listener para a navegação mobile (select)
+            mobileNav.addEventListener('change', (e) => {
+                const topicKey = e.target.value;
+                updateState(topicKey);
+            });
+
+            // Event listener para a navegação de sub-tópicos na barra lateral
+            subSidebarNav.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (e.target.tagName === 'A' && e.target.classList.contains('side-nav-link')) {
+                    const { topic, subtopic } = e.target.dataset;
+                    renderContent(topic, subtopic);
+                    setActiveState(topic, subtopic);
+                }
+            });
+
+            // Popula a navegação principal da barra lateral e o select mobile ao carregar
+            populateMainSidebarNav();
+
+            // Popula o select mobile com os tópicos principais
+            Object.keys(lawData).forEach(topicKey => {
+                const topic = lawData[topicKey];
+                const opt = document.createElement('option');
+                opt.value = topicKey;
+                opt.textContent = topic.title;
+                mobileNav.appendChild(opt);
+            });
+
+            // Carrega o conteúdo inicial (Direito Civil, primeiro sub-tópico)
+            updateState('civil');
         });
-        sideNav.appendChild(btn);
-      });
-    }
-
-    function populateTopNav() {
-      Object.keys(lawData).forEach(topicKey => {
-        const topic = lawData[topicKey];
-        const btn = document.createElement('button');
-        btn.dataset.topic = topicKey;
-        btn.className = "nav-button px-4 py-2 rounded-md text-sm hover:bg-blue-100";
-        btn.textContent = topic.title;
-        btn.addEventListener('click', () => renderSideNav(topicKey));
-        topNav.appendChild(btn);
-
-        const opt = document.createElement('option');
-        opt.value = topicKey;
-        opt.textContent = topic.title;
-        mobileNav.appendChild(opt);
-      });
-    }
-
-    topNav.addEventListener('click', e => {
-      if (e.target.dataset.topic) renderSideNav(e.target.dataset.topic);
-    });
-
-    mobileNav.addEventListener('change', e => {
-      renderSideNav(e.target.value);
-    });
-
-    document.getElementById('explain-term-btn').addEventListener('click', () => {
-      alert("Funcionalidade de explicação de termo dependerá da integração com a API externa.");
-    });
-
-    document.getElementById('summarize-btn').addEventListener('click', () => {
-      alert("Funcionalidade de resumo dependerá da integração com a API externa.");
-    });
-
-    populateTopNav();
-  </script>
+    </script>
 </body>
 </html>
