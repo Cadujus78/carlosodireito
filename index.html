@@ -19,17 +19,9 @@
     <header class="bg-white shadow-md">
       <nav class="container mx-auto px-4 py-3 flex justify-between items-center">
         <h1 class="text-2xl font-bold text-blue-700">Direito Brasileiro</h1>
-        <div class="hidden md:flex gap-2" id="top-nav">
-          <button data-topic="civil" class="nav-button px-4 py-2 rounded-md text-sm hover:bg-blue-100">Civil</button>
-          <button data-topic="penal" class="nav-button px-4 py-2 rounded-md text-sm hover:bg-blue-100">Penal</button>
-          <button data-topic="administrativo" class="nav-button px-4 py-2 rounded-md text-sm hover:bg-blue-100">Administrativo</button>
-        </div>
+        <div class="hidden md:flex gap-2" id="top-nav"></div>
         <div class="md:hidden">
-          <select id="mobile-nav" class="border px-2 py-1 rounded">
-            <option value="civil">Civil</option>
-            <option value="penal">Penal</option>
-            <option value="administrativo">Administrativo</option>
-          </select>
+          <select id="mobile-nav" class="border px-2 py-1 rounded"></select>
         </div>
       </nav>
     </header>
@@ -47,42 +39,146 @@
         <div id="content-body" class="prose max-w-none"></div>
       </section>
     </main>
+
+    <footer class="bg-white shadow-inner border-t mt-6 py-4">
+      <div class="container mx-auto px-4">
+        <h2 class="text-lg font-semibold text-gray-700 mb-2">Links Úteis</h2>
+        $1
+<ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-sm text-blue-700 underline mt-4">
+  <li><a href="https://www.tjrj.jus.br" target="_blank">Tribunal de Justiça do Rio de Janeiro (TJRJ)</a></li>
+  <li><a href="https://www.stm.jus.br" target="_blank">Superior Tribunal Militar (STM)</a></li>
+  <li><a href="https://www10.trf2.jus.br" target="_blank">Tribunal Regional Federal da 2ª Região (TRF2)</a></li>
+  <li><a href="https://www.mprj.mp.br" target="_blank">Ministério Público do Estado do Rio de Janeiro (MPRJ)</a></li>
+  <li><a href="https://www.oabrj.org.br" target="_blank">Ordem dos Advogados do Brasil - Seção RJ (OABRJ)</a></li>
+  <li><a href="https://www.dpu.def.br" target="_blank">Defensoria Pública da União (DPU)</a></li>
+  <li><a href="https://www.defensoria.rj.def.br" target="_blank">Defensoria Pública do Estado do Rio de Janeiro (DPE-RJ)</a></li>
+  <li><a href="https://www.procon.rj.gov.br" target="_blank">Procon RJ</a></li>
+  <li><a href="https://procon.carioca.rio" target="_blank">Procon Carioca</a></li>
+  <li><a href="https://www.camara.leg.br" target="_blank">Câmara dos Deputados</a></li>
+  <li><a href="https://www25.senado.leg.br" target="_blank">Senado Federal</a></li>
+$1
+
+<section class="bg-white border-t py-6">
+  <div class="container mx-auto px-4">
+    <h2 class="text-lg font-semibold text-gray-700 mb-2">Notícias Jurídicas</h2>
+    <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-sm text-blue-700 underline">
+      <li><a href="https://www.migalhas.com.br" target="_blank">Portal Migalhas</a></li>
+      <li><a href="https://www.conjur.com.br" target="_blank">Consultor Jurídico (Conjur)</a></li>
+      <li><a href="https://www.jota.info" target="_blank">JOTA</a></li>
+    </ul>
   </div>
+</section>
+  </div>
+
   <script>
     const lawData = {
-      civil: {
-        title: "Direito Civil",
-        subtopics: {
-          contratos: {
-            title: "Contratos",
-            content: "<p>Contratos são acordos entre partes que geram obrigações recíprocas. O Código Civil regula sua formação, validade e extinção.</p>"
-          }
-        }
-      },
-      penal: {
-        title: "Direito Penal",
-        subtopics: {
-          conceito: {
-            title: "Conceito de Crime",
-            content: "<p>Crime é a infração penal que o Estado pune com pena. O conceito analítico inclui fato típico, ilícito e culpável.</p>"
-          }
-        }
-      },
-      administrativo: {
-        title: "Direito Administrativo",
-        subtopics: {
-          licitacoes: {
-            title: "Licitações",
-            content: "<p>Licitação é o procedimento para contratação pela administração, visando a proposta mais vantajosa.</p>"
-          }
-        }
-      }
-    };
+  internacional_publico: {
+    title: "Direito Internacional Público",
+    subtopics: {
+      tratados: { title: "Tratados Internacionais", content: "<p>Tratados regem as relações entre Estados soberanos.</p>" },
+      ongs: { title: "Organizações Internacionais", content: "<p>Exemplos: ONU, OMC, OEA.</p>" }
+    }
+  },
+  internacional_privado: {
+    title: "Direito Internacional Privado",
+    subtopics: {
+      conflitos: { title: "Conflito de Leis", content: "<p>Normas para resolver conflitos de jurisdição entre países.</p>" },
+      nacionalidade: { title: "Nacionalidade e Domicílio", content: "<p>Critérios legais para definição de nacionalidade e domicílio.</p>" }
+    }
+  },
+  empresarial: {
+    title: "Direito Empresarial",
+    subtopics: {
+      sociedade: { title: "Sociedade Empresária", content: "<p>Regras sobre constituição e funcionamento de empresas.</p>" },
+      falencia: { title: "Falência e Recuperação", content: "<p>Processos aplicáveis a empresas insolventes.</p>" }
+    }
+  },
+  civil: {
+    title: "Direito Civil",
+    subtopics: {
+      contratos: { title: "Contratos", content: "<p>Regras sobre contratos no Código Civil.</p>" },
+      familia: { title: "Direito de Família", content: "<p>Regula casamento, união estável, guarda, alimentos e adoção.</p>" },
+      sucessoes: { title: "Sucessões", content: "<p>Normas sobre herança e partilha de bens.</p>" }
+    }
+  },
+  penal: {
+    title: "Direito Penal",
+    subtopics: {
+      conceito: { title: "Conceito de Crime", content: "<p>Crime é uma infração penal punível.</p>" },
+      penas: { title: "Penas e Medidas", content: "<p>Classificação das penas e medidas de segurança.</p>" }
+    }
+  },
+  administrativo: {
+    title: "Direito Administrativo",
+    subtopics: {
+      licitacoes: { title: "Licitações", content: "<p>Processo administrativo para contratação.</p>" },
+      servidores: { title: "Servidores Públicos", content: "<p>Regime jurídico e direitos dos servidores.</p>" }
+    }
+  },
+  processual_civil: {
+    title: "Direito Processual Civil",
+    subtopics: {
+      peticao: { title: "Petição Inicial", content: "<p>Primeiro ato do processo civil.</p>" },
+      audiencias: { title: "Audiências", content: "<p>Etapas de instrução e julgamento.</p>" }
+    }
+  },
+  processual_penal: {
+    title: "Direito Processual Penal",
+    subtopics: {
+      inquerito: { title: "Inquérito Policial", content: "<p>Fase investigativa do processo penal.</p>" },
+      prisao: { title: "Prisão e Liberdade Provisória", content: "<p>Medidas cautelares penais.</p>" }
+    }
+  },
+  constitucional: {
+    title: "Direito Constitucional",
+    subtopics: {
+      principios: { title: "Princípios Fundamentais", content: "<p>Normas básicas da Constituição.</p>" },
+      direitos: { title: "Direitos e Garantias", content: "<p>Direitos individuais e coletivos assegurados.</p>" }
+    }
+  },
+  consumidor: {
+    title: "Direito do Consumidor",
+    subtopics: {
+      defesa: { title: "Defesa do Consumidor", content: "<p>Regras de proteção ao consumidor.</p>" },
+      contratos_consumo: { title: "Contratos de Consumo", content: "<p>Regras específicas dos contratos de consumo.</p>" }
+    }
+  },
+  trabalho: {
+    title: "Direito do Trabalho",
+    subtopics: {
+      contrato: { title: "Contrato de Trabalho", content: "<p>Vínculo entre empregado e empregador.</p>" },
+      jornada: { title: "Jornada e Férias", content: "<p>Limites legais de jornada e direitos a férias.</p>" }
+    }
+  },
+  processual_trabalho: {
+    title: "Direito Processual do Trabalho",
+    subtopics: {
+      audiencia: { title: "Audiência Trabalhista", content: "<p>Procedimento perante a Justiça do Trabalho.</p>" },
+      recursos: { title: "Recursos Trabalhistas", content: "<p>Recursos disponíveis no processo trabalhista.</p>" }
+    }
+  },
+  ambiental: {
+    title: "Direito Ambiental",
+    subtopics: {
+      licenciamento: { title: "Licenciamento Ambiental", content: "<p>Autorização para atividades com impacto ambiental.</p>" },
+      crimes: { title: "Crimes Ambientais", content: "<p>Infrações ambientais previstas em lei.</p>" }
+    }
+  },
+  eleitoral: {
+    title: "Direito Eleitoral",
+    subtopics: {
+      voto: { title: "Sistema Eleitoral", content: "<p>Normas sobre eleições e votos.</p>" },
+      inelegibilidade: { title: "Inelegibilidade", content: "<p>Casos em que o cidadão não pode se candidatar.</p>" }
+    }
+  }
+};
+
     const topNav = document.getElementById('top-nav');
     const mobileNav = document.getElementById('mobile-nav');
     const sideNav = document.getElementById('side-nav');
     const contentTitle = document.getElementById('content-title');
     const contentBody = document.getElementById('content-body');
+
     function renderSideNav(topicKey) {
       const topic = lawData[topicKey];
       sideNav.innerHTML = `<h2 class="text-lg font-semibold mb-4">${topic.title}</h2>`;
@@ -97,18 +193,41 @@
         sideNav.appendChild(btn);
       });
     }
+
+    function populateTopNav() {
+      Object.keys(lawData).forEach(topicKey => {
+        const topic = lawData[topicKey];
+        const btn = document.createElement('button');
+        btn.dataset.topic = topicKey;
+        btn.className = "nav-button px-4 py-2 rounded-md text-sm hover:bg-blue-100";
+        btn.textContent = topic.title;
+        btn.addEventListener('click', () => renderSideNav(topicKey));
+        topNav.appendChild(btn);
+
+        const opt = document.createElement('option');
+        opt.value = topicKey;
+        opt.textContent = topic.title;
+        mobileNav.appendChild(opt);
+      });
+    }
+
     topNav.addEventListener('click', e => {
       if (e.target.dataset.topic) renderSideNav(e.target.dataset.topic);
     });
+
     mobileNav.addEventListener('change', e => {
       renderSideNav(e.target.value);
     });
+
     document.getElementById('explain-term-btn').addEventListener('click', () => {
       alert("Funcionalidade de explicação de termo dependerá da integração com a API externa.");
     });
+
     document.getElementById('summarize-btn').addEventListener('click', () => {
       alert("Funcionalidade de resumo dependerá da integração com a API externa.");
     });
+
+    populateTopNav();
   </script>
 </body>
 </html>
